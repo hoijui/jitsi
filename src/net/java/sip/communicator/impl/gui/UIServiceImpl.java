@@ -197,6 +197,7 @@ public class UIServiceImpl
             }
         }
 
+ConfigurationUtils.setApplicationVisible(true); // HACK for debugging
         if(ConfigurationUtils.isApplicationVisible())
             mainFrame.setFrameVisible(true);
 
@@ -452,7 +453,7 @@ public class UIServiceImpl
      * @return determines whether the UI impl would exit the application when
      * the main application window is closed.
      */
-    public boolean getExitOnMainWindowClose()
+    public boolean getExitOnMainWindowClose() // XXX possibly interesting
     {
         return
             (mainFrame != null)

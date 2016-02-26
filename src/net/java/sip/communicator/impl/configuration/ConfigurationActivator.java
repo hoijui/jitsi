@@ -18,6 +18,7 @@
 package net.java.sip.communicator.impl.configuration;
 
 import com.sun.jna.*;
+import java.beans.*;
 
 import net.java.sip.communicator.util.ServiceUtils;
 
@@ -28,6 +29,7 @@ import org.jitsi.util.*;
 import org.osgi.framework.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  *
@@ -97,6 +99,8 @@ public class ConfigurationActivator
 
         if (this.cs == null)
             this.cs = LibJitsi.getConfigurationService();
+
+this.cs = new WrapperConfigurationService(this.cs);
 
         bundleContext.registerService(
                 ConfigurationService.class.getName(),

@@ -189,7 +189,7 @@ public class SystrayServiceJdicImpl
 
         menu = TrayMenuFactory.createTrayMenu(this, systray.isSwing());
 
-        boolean isMac = OSUtils.IS_MAC;
+        final boolean isMac = OSUtils.IS_MAC;
 
         // If we're running under Windows, we use a special icon without
         // background.
@@ -237,8 +237,8 @@ public class SystrayServiceJdicImpl
         }
 
         /*
-         * Default to set offline , if any protocols become online will set it
-         * to online.
+         * Default to "offline"; if any protocols become online,
+         * we will set it to "online".
          */
         currentIcon = isMac ? logoIcon : logoIconOffline;
 
@@ -358,6 +358,7 @@ public class SystrayServiceJdicImpl
 
         initialized = true;
 
+        // TODO Only here setApplicationVisible(false), if that is what ht eseting sais!
         uiService.setExitOnMainWindowClose(false);
     }
 
@@ -501,6 +502,11 @@ public class SystrayServiceJdicImpl
             newHandler.addPopupMessageListener(popupMessageListener);
 
         return super.setActivePopupMessageHandler(newHandler);
+    }
+
+    public boolean isSupported()
+    {
+        return (this.systray != null);
     }
 
     /** our listener for popup message click */

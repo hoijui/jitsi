@@ -17,10 +17,13 @@
  */
 package net.java.sip.communicator.impl.osdependent;
 
+import net.java.sip.communicator.impl.gui.*;
+import net.java.sip.communicator.impl.msghistory.*;
 import net.java.sip.communicator.impl.osdependent.jdic.*;
 import net.java.sip.communicator.impl.osdependent.macosx.*;
 import net.java.sip.communicator.service.desktop.*;
 import net.java.sip.communicator.service.gui.*;
+import net.java.sip.communicator.service.msghistory.*;
 import net.java.sip.communicator.service.protocol.globalstatus.*;
 import net.java.sip.communicator.service.resources.*;
 import net.java.sip.communicator.service.shutdown.*;
@@ -163,8 +166,27 @@ public class OsDependentActivator
             if (OSUtils.IS_MAC)
                 MacOSXDockIcon.addDockIconListener();
 
+            // Check if the system tray is enabled in the configuration
+            // service, and if not, register a dummy service instead.
+            boolean useSystemTray = configService.getBoolean(
+                DesktopService.PNAME_USE_SYSTEM_TRAY,
+                Boolean.parseBoolean(
+                    OsDependentActivator.getResources().getSettingsString(
+                    DesktopService.PNAME_USE_SYSTEM_TRAY))
+                );
+
             // Create the notification service implementation
-            SystrayService systrayService = new SystrayServiceJdicImpl();
+            SystrayService systrayService = null;
+            if (useSystemTray) {
+logger.error("SystrayServiceJdicImpl...");
+                systrayService = new SystrayServiceJdicImpl();
+            }
+
+//logger.error("SystrayServiceJdicImpl.isSupported(): " + systrayService.isSupported());
+            if ((systrayService == null) || !systrayService.isSupported()) {
+                systrayService = new NoneSystrayServiceImpl();
+                useSystemTray = false;
+            }
 
             if (logger.isInfoEnabled())
                 logger.info("Systray Service...[  STARTED ]");

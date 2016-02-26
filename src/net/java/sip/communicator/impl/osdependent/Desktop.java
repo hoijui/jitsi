@@ -32,7 +32,7 @@ import net.java.sip.communicator.util.Logger;
  */
 public class Desktop
 {
-    private static final Logger logger = Logger.getLogger(SystemTray.class);
+    private static final Logger logger = Logger.getLogger(Desktop.class);
 
     private static Desktop defaultDesktop;
 
@@ -60,7 +60,7 @@ public class Desktop
         }
         catch (ClassNotFoundException ex)
         {
-            // We'll try org.jdesktop.jdic.desktop then.
+            // We will run in simple-window/no-systray mode.
         }
         DesktopPeer peer = null;
         if (awtDesktopClass != null)
@@ -71,17 +71,18 @@ public class Desktop
             catch (Exception ex)
             {
                 logger.error(
-                "Failed to initialize the java.awt.SystemTray implementation.",
+                "Failed to initialize the java.awt.Desktop implementation.",
                 ex);
 
-                // We'll try org.jdesktop.jdic.desktop then.
+                // We will run in simple-window/no-systray mode.
             }
         if (peer == null)
         {
+            // TODO Check if it ever makes sense to log an error and throw an exception at th esame time
             logger.error(
-                "Failed to initialize the desktop.tray implementation.");
+                "Failed to initialize the desktop tray implementation.");
             throw new UnsupportedOperationException(
-                "Failed to initialize the desktop.tray implementation.");
+                "Failed to initialize the desktop tray implementation.");
         }
         return (defaultDesktop = new Desktop(peer));
     }

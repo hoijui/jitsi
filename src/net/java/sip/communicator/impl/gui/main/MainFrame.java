@@ -334,7 +334,8 @@ public class MainFrame
      */
     private void init()
     {
-        setDefaultCloseOperation(
+        setDefaultCloseOperation( // XXX This looks like it sets the DCO to the value it is currently set to .. useless?
+            // XXX possibly interesting
             GuiActivator.getUIService().getExitOnMainWindowClose()
                 ? JFrame.DISPOSE_ON_CLOSE
                 : JFrame.HIDE_ON_CLOSE);
@@ -1342,7 +1343,7 @@ public class MainFrame
      * the escape key
      */
     @Override
-    protected void close(boolean isEscaped)
+    protected void close(boolean isEscaped) // XXX possibly interesting
     {
         TreeContactList contactList = GuiActivator.getContactList();
 
@@ -1757,7 +1758,7 @@ public class MainFrame
      *
      * @see UIService#setVisible(boolean)
      */
-    public void setFrameVisible(final boolean isVisible)
+    public void setFrameVisible(final boolean isVisible) // XXX possibly interesting
     {
         ConfigurationUtils.setApplicationVisible(isVisible);
 
@@ -1913,7 +1914,7 @@ public class MainFrame
      * @param event the <tt>WindowEvent</tt> that notified us
      */
     @Override
-    protected void windowClosing(WindowEvent event)
+    protected void windowClosing(WindowEvent event) // XXX possibly interesting
     {
         super.windowClosing(event);
 

@@ -24,10 +24,12 @@ import java.util.*;
 import java.util.List;
 
 import javax.net.ssl.*;
+import net.java.sip.communicator.service.desktop.*;
 
 import net.java.sip.communicator.service.msghistory.*;
 import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.service.resources.*;
+import net.java.sip.communicator.service.systray.*;
 
 import org.jitsi.service.configuration.*;
 import org.jitsi.service.neomedia.*;
@@ -80,11 +82,6 @@ public class ConfigurationUtils
      * Indicates if the offline contacts are shown.
      */
     private static boolean isShowOffline = true;
-
-    /**
-     * Indicates if the application main window is visible by default.
-     */
-    private static boolean isApplicationVisible = true;
 
     /**
      * Indicates if the quit warning should be shown.
@@ -462,12 +459,6 @@ public class ConfigurationUtils
         {
             isShowOffline = Boolean.parseBoolean(showOffline);
         }
-
-        // Load the "showApplication" property.
-        isApplicationVisible
-            = configService.getBoolean(
-                    "net.java.sip.communicator.impl.systray.showApplication",
-                    isApplicationVisible);
 
         // Load the "showAppQuitWarning" property.
         String quitWarningShown = configService.getString(
@@ -1048,10 +1039,16 @@ public class ConfigurationUtils
      * window should shown or hidden on startup.
      * @return TRUE if "showApplication" property is true, otherwise - return
      * FALSE.
+     * @deprecated use the TODO
      */
     public static boolean isApplicationVisible()
     {
-        return isApplicationVisible;
+        return configService.getBoolean(
+            SystrayService.PNAME_SHOW_APPLICATION,
+            false)
+                || !configService.getBoolean(
+            SystrayService.PNAME_USE_SYSTEM_TRAY,
+            true);
     }
 
     /**
@@ -1936,13 +1933,16 @@ public class ConfigurationUtils
     public static void setApplicationVisible(boolean isVisible)
     {
         // If we're already in the desired visible state, don't change anything.
-        if (isApplicationVisible == isVisible)
+        if (isApplicationVisible() == isVisible)
             return;
 
-        isApplicationVisible = isVisible;
+        if (!configService.getBoolean(
+                SystrayService.PNAME_USE_SYSTEM_TRAY,
+                true))
+            return;
 
         configService.setProperty(
-                "net.java.sip.communicator.impl.systray.showApplication",
+                SystrayService.PNAME_SHOW_APPLICATION,
                 Boolean.toString(isVisible));
     }
 
@@ -2694,11 +2694,6 @@ public class ConfigurationUtils
                 "net.java.sip.communicator.impl.gui.showOffline"))
             {
                 isShowOffline = Boolean.parseBoolean(newValue);
-            }
-            else if (evt.getPropertyName().equals(
-                "net.java.sip.communicator.impl.systray.showApplication"))
-            {
-                isApplicationVisible = Boolean.parseBoolean(newValue);;
             }
             else if (evt.getPropertyName().equals(
                 "net.java.sip.communicator.impl.gui.quitWarningShown"))

@@ -54,7 +54,7 @@ public class SystemTray
         }
         catch (ClassNotFoundException ex)
         {
-            // We'll try org.jdesktop.jdic.tray then.
+            // We'll switch to non-systray/simple-window mode then.
         }
         SystemTrayPeer peer = null;
         if (awtSystemTrayClass != null)
@@ -68,10 +68,11 @@ public class SystemTray
                     logger.error("Failed to initialize java.awt.SystemTray",
                         ex);
 
-                // We'll try org.jdesktop.jdic.tray then.
+                // We'll switch to non-systray/simple-window mode then.
             }
         if (peer == null)
         {
+            // TODO Check if it may ever make sense to log and throw one thing at the same time
             logger.error(
                 "Failed to initialize the desktop.tray implementation.");
             throw new UnsupportedOperationException(

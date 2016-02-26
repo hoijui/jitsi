@@ -83,6 +83,24 @@ public interface SystrayService
     public static final int ENVELOPE_IMG_TYPE = 1;
 
     /**
+     * Name of the property that indicates whether to use the system tray.
+     * A system tray icon is only used if this property is set to true
+     * and the system actually supports a system tray.
+     */
+    public static final String PNAME_USE_SYSTEM_TRAY
+        = "net.java.sip.communicator.service.systray."
+            + "USE_SYSTEM_TRAY";
+
+    /**
+     * Name of the property that indicates whether to show the application
+     * - the main GUI window - when the system tray is in use.
+     * If the system tray is not in use, the application is always shown.
+     * NOTE The "impl" part (instead of "service") is kept for backwards compatibility.
+     */
+    public static final String PNAME_SHOW_APPLICATION
+            = "net.java.sip.communicator.impl.systray.showApplication";
+
+    /**
      * Shows the given <tt>PopupMessage</tt>
      *
      * @param popupMessage the message to show
@@ -129,4 +147,10 @@ public interface SystrayService
      * Selects the best available popup message handler
      */
     public void selectBestPopupMessageHandler();
+
+    /**
+     * TODO
+     * @return
+     */
+    boolean isSupported();
 }
