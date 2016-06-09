@@ -432,15 +432,7 @@ public class UIServiceImpl
         mainFrame.setAlwaysOnTop(false);
     }
 
-    /**
-     * Implements {@link UIService#setExitOnMainWindowClose}. Sets the boolean
-     * property which indicates whether the application should be exited when
-     * the main application window is closed.
-     *
-     * @param exitOnMainWindowClose <tt>true</tt> if closing the main
-     * application window should also be exiting the application; otherwise,
-     * <tt>false</tt>
-     */
+    @Override
     public void setExitOnMainWindowClose(boolean exitOnMainWindowClose)
     {
         mainFrame.setDefaultCloseOperation(
@@ -451,14 +443,7 @@ public class UIServiceImpl
                         : JFrame.HIDE_ON_CLOSE);
     }
 
-    /**
-     * Implements {@link UIService#getExitOnMainWindowClose()}. Gets the boolean
-     * property which indicates whether the application should be exited when
-     * the main application window is closed.
-     *
-     * @return determines whether the UI impl would exit the application when
-     * the main application window is closed.
-     */
+    @Override
     public boolean getExitOnMainWindowClose()
     {
         return
