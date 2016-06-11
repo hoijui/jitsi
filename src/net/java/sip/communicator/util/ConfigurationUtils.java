@@ -1103,6 +1103,16 @@ public class ConfigurationUtils
     }
 
     /**
+     * Indicates whether the minimize-on-close property has been set yet.
+     * @return <tt>true</tt> if the property has been set,
+     *         <tt>false</tt> otherwise
+     */
+    public static boolean isMinimizeOnCloseSet()
+    {
+        return (configService.getString(PNAME_MINIMIZE_ON_CLOSE) != null);
+    }
+
+    /**
      * Indicates whether the application should be minimized
      * when clicking close (the X button) on the main frame.
      * @return <tt>true</tt> when the main frame should be minimized,
@@ -1117,13 +1127,18 @@ public class ConfigurationUtils
      * Sets whether the application should be minimized
      * when clicking close (the X button) on the main frame,
      * instead of exiting the application.
-     * @param value <tt>true</tt> when the main frame should be minimized,
+     * @param value <tt>true</tt> if the main frame should be minimized,
+     *            <tt>false</tt> otherwise
+     * @param permanent <tt>true</tt> if the value should be permanently stored,
      *            <tt>false</tt> otherwise
      */
-    public static void setMinimizeOnClose(boolean value)
+    public static void setMinimizeOnClose(boolean value, boolean permanent)
     {
         minimizeOnClose = value;
-        configService.setProperty(PNAME_MINIMIZE_ON_CLOSE, value);
+        if (permanent)
+        {
+            configService.setProperty(PNAME_MINIMIZE_ON_CLOSE, value);
+        }
     }
 
     /**

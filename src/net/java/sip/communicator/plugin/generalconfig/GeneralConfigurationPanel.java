@@ -250,7 +250,8 @@ public class GeneralConfigurationPanel
             public void actionPerformed(ActionEvent e)
             {
                 boolean value = ((JCheckBox) e.getSource()).isSelected();
-                ConfigurationUtils.setMinimizeOnClose(value);
+                ConfigurationUtils.setMinimizeOnClose(value,
+                    ConfigurationUtils.isMinimizeOnCloseSet());
                 UtilActivator.getUIService().setExitOnMainWindowClose(
                     !UtilActivator.getSystrayService().checkInitialized());
             }

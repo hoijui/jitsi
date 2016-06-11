@@ -1917,37 +1917,57 @@ public class MainFrame
     {
         super.windowClosing(event);
 
-        if (GuiActivator.getUIService().getExitOnMainWindowClose()
-                && ConfigurationUtils.isMinimizeOnClose())
+        if (GuiActivator.getSystrayService().checkInitialized())
         {
-            minimize();
-        }
-        // On Mac systems the application is not quited on window close, so we
-        // don't need to warn the user.
-        else if (!GuiActivator.getUIService().getExitOnMainWindowClose()
-            && !OSUtils.IS_MAC
-            && GuiActivator.getSystrayService().checkInitialized())
-        {
-            SwingUtilities.invokeLater(new Runnable()
+            // On Mac systems the application is not quited on window close, so we
+            // don't need to warn the user.
+            if (!GuiActivator.getUIService().getExitOnMainWindowClose()
+                && !OSUtils.IS_MAC)
             {
-                public void run()
+                SwingUtilities.invokeLater(new Runnable()
                 {
-                    if (ConfigurationUtils.isQuitWarningShown())
+                    public void run()
                     {
-                        MessageDialog dialog =
-                            new MessageDialog(null,
-                                GuiActivator.getResources().getI18NString(
-                                "service.gui.CLOSE"),
-                                GuiActivator.getResources().getI18NString(
-                                "service.gui.HIDE_MAIN_WINDOW"), false);
+                        if (ConfigurationUtils.isQuitWarningShown())
+                        {
+                            MessageDialog dialog =
+                                new MessageDialog(null,
+                                    GuiActivator.getResources().getI18NString(
+                                    "service.gui.CLOSE"),
+                                    GuiActivator.getResources().getI18NString(
+                                    "service.gui.HIDE_MAIN_WINDOW"), false);
 
-                        if (dialog.showDialog() == MessageDialog.OK_DONT_ASK_CODE)
-                            ConfigurationUtils.setQuitWarningShown(false);
+                            if (dialog.showDialog() == MessageDialog.OK_DONT_ASK_CODE)
+                                ConfigurationUtils.setQuitWarningShown(false);
+                        }
                     }
-                }
-            });
+                });
 
-            ConfigurationUtils.setApplicationVisible(false);
+                ConfigurationUtils.setApplicationVisible(false);
+            }
+        }
+        else
+        {
+            if (!ConfigurationUtils.isMinimizeOnCloseSet())
+            {
+                // ask the user
+                final MessageDialog minimizeOrExitDialog = new MessageDialog(
+                        null,
+                        "Minimize or exit on close?",
+                        "Would you like to exit the application, or just minimize?",
+                        "Exit",
+                        true);
+                final int usersChoice = minimizeOrExitDialog.showDialog();
+                final boolean minimize = (usersChoice == MessageDialog.CANCEL_RETURN_CODE);
+                final boolean rememberChoice = minimizeOrExitDialog.isDoNotAskAgainEnabled();
+                ConfigurationUtils.setMinimizeOnClose(minimize, rememberChoice);
+                GuiActivator.getUIService().setExitOnMainWindowClose(true);
+            }
+
+            if (ConfigurationUtils.isMinimizeOnClose())
+            {
+                minimize();
+            }
         }
     }
 
