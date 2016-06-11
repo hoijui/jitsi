@@ -242,10 +242,18 @@ public class MessageDialog
     }
 
     /**
+     * Indicates whether the user wants the application to remember his choice.
+     */
+    public boolean isDoNotAskAgainEnabled()
+    {
+        return doNotAskAgain.isSelected();
+    }
+
+    /**
      * Shows the dialog.
      * @return The return code that should indicate what was the choice of
      * the user. If the user chooses cancel, the return code is the
-     * CANCEL_RETURN_CODE.
+     * {@link #CANCEL_RETURN_CODE}.
      */
     public int showDialog()
     {
