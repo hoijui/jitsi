@@ -237,26 +237,26 @@ public class GeneralConfigurationPanel
     }
 
     /**
-     * Initializes the minimize instead of hide checkbox.
+     * Initializes the minimize on close checkbox.
      */
-    public Component createMinimzeInsteadOfHideCheckBox()
+    public Component createMinimzeOnCloseCheckBox()
     {
         JCheckBox chk = new SIPCommCheckBox();
 
         chk.setText(
-            Resources.getString("plugin.generalconfig.MINIMIZE_NOT_HIDE"));
+            Resources.getString("plugin.generalconfig.MINIMIZE_ON_CLOSE"));
         chk.addActionListener(new ActionListener()
         {
             public void actionPerformed(ActionEvent e)
             {
                 boolean value = ((JCheckBox) e.getSource()).isSelected();
-                ConfigurationUtils.setIsMinimizeInsteadOfHide(value);
+                ConfigurationUtils.setMinimizeOnClose(value);
                 UtilActivator.getUIService().setExitOnMainWindowClose(
                     !UtilActivator.getSystrayService().checkInitialized());
             }
         });
 
-        chk.setSelected(ConfigurationUtils.isMinimizeInsteadOfHide());
+        chk.setSelected(ConfigurationUtils.isMinimizeOnClose());
         return chk;
     }
 
@@ -987,7 +987,7 @@ public class GeneralConfigurationPanel
             createConfigSectionComponent(
                 Resources.getString("plugin.generalconfig.STARTUP_CONFIG"));
 
-        updateConfigPanel.add(createMinimzeInsteadOfHideCheckBox());
+        updateConfigPanel.add(createMinimzeOnCloseCheckBox());
         if (OSUtils.IS_WINDOWS)
         {
             updateConfigPanel.add(createAutoStartCheckBox());

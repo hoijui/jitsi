@@ -334,10 +334,9 @@ public class MainFrame
      */
     private void init()
     {
-        setDefaultCloseOperation(
-            GuiActivator.getUIService().getExitOnMainWindowClose()
-                ? JFrame.DISPOSE_ON_CLOSE
-                : JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(ConfigurationUtils.isMinimizeOnClose()
+                ? JFrame.DO_NOTHING_ON_CLOSE
+                : JFrame.DISPOSE_ON_CLOSE);
 
         registerKeyActions();
 
@@ -1885,7 +1884,8 @@ public class MainFrame
      */
     protected void windowClosed(WindowEvent event)
     {
-        if(GuiActivator.getUIService().getExitOnMainWindowClose())
+        if (GuiActivator.getUIService().getExitOnMainWindowClose()
+                && !ConfigurationUtils.isMinimizeOnClose())
         {
             try
             {
@@ -1917,9 +1917,14 @@ public class MainFrame
     {
         super.windowClosing(event);
 
+        if (GuiActivator.getUIService().getExitOnMainWindowClose()
+                && ConfigurationUtils.isMinimizeOnClose())
+        {
+            minimize();
+        }
         // On Mac systems the application is not quited on window close, so we
         // don't need to warn the user.
-        if (!GuiActivator.getUIService().getExitOnMainWindowClose()
+        else if (!GuiActivator.getUIService().getExitOnMainWindowClose()
             && !OSUtils.IS_MAC
             && GuiActivator.getSystrayService().checkInitialized())
         {
@@ -1943,10 +1948,6 @@ public class MainFrame
             });
 
             ConfigurationUtils.setApplicationVisible(false);
-            if (ConfigurationUtils.isMinimizeInsteadOfHide())
-            {
-                this.minimize();
-            }
         }
     }
 

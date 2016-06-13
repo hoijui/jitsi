@@ -92,9 +92,11 @@ public class ConfigurationUtils
     private static boolean isQuitWarningShown = true;
 
     /**
-     * Indicates if the main frame should be minimized instead of hidden.
+     * Indicates whether the main frame should be minimized instead of
+     * exiting the application on a close request (X window button was clicked).
+     * This is only relevant when the system tray is not in use.
      */
-    private static boolean minimizeInsteadOfHide = false;
+    private static boolean minimizeOnClose = false;
 
     /**
      * Indicates if typing notifications should be sent.
@@ -412,6 +414,13 @@ public class ConfigurationUtils
         = "plugin.chatalerter.ENABLED";
 
     /**
+     * The name of the property that indicates whether the application
+     * should be minimized or exited on a close request.
+     */
+    private static final String PNAME_MINIMIZE_ON_CLOSE
+        = "net.java.sip.communicator.impl.gui.minimizeOnClose";
+
+    /**
      * Indicates if window (task bar or dock icon) alerter is enabled.
      */
     private static boolean alerterEnabled;
@@ -484,8 +493,7 @@ public class ConfigurationUtils
                 = Boolean.parseBoolean(quitWarningShown);
         }
 
-        minimizeInsteadOfHide = configService.getBoolean(
-            "net.java.sip.communicator.impl.gui.minimizeInsteadOfHide",
+        minimizeOnClose = configService.getBoolean(PNAME_MINIMIZE_ON_CLOSE,
             isPinnedToTaskBar());
 
         // Load the "sendTypingNotifications" property.
@@ -1095,27 +1103,27 @@ public class ConfigurationUtils
     }
 
     /**
-     * Gets whether the application should be minimized and not hidden when
-     * clicking close on the main frame.
+     * Indicates whether the application should be minimized
+     * when clicking close (the X button) on the main frame.
      * @return <tt>true</tt> when the main frame should be minimized,
      *         <tt>false</tt> otherwise
      */
-    public static boolean isMinimizeInsteadOfHide()
+    public static boolean isMinimizeOnClose()
     {
-        return minimizeInsteadOfHide;
+        return minimizeOnClose;
     }
 
     /**
-     * Sets whether the application should be minimized and not hidden when
-     * clicking close on the main frame.
+     * Sets whether the application should be minimized
+     * when clicking close (the X button) on the main frame,
+     * instead of exiting the application.
      * @param value <tt>true</tt> when the main frame should be minimized,
      *            <tt>false</tt> otherwise
      */
-    public static void setIsMinimizeInsteadOfHide(boolean value)
+    public static void setMinimizeOnClose(boolean value)
     {
-        minimizeInsteadOfHide = value;
-        configService.setProperty(
-            "net.java.sip.communicator.impl.gui.minimizeInsteadOfHide", value);
+        minimizeOnClose = value;
+        configService.setProperty(PNAME_MINIMIZE_ON_CLOSE, value);
     }
 
     /**
@@ -2743,6 +2751,10 @@ public class ConfigurationUtils
                 {
                     autoPopupNewMessage = false;
                 }
+            }
+            else if (evt.getPropertyName().equals(PNAME_MINIMIZE_ON_CLOSE))
+            {
+                minimizeOnClose = ("yes".equalsIgnoreCase(newValue));
             }
             else if (evt.getPropertyName().equals(
                 "service.gui.SEND_MESSAGE_COMMAND"))

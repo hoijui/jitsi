@@ -200,7 +200,7 @@ public class UIServiceImpl
         }
 
         if(ConfigurationUtils.isApplicationVisible()
-            || ConfigurationUtils.isMinimizeInsteadOfHide())
+            || ConfigurationUtils.isMinimizeOnClose())
         {
             mainFrame.setFrameVisible(true);
         }
@@ -437,10 +437,10 @@ public class UIServiceImpl
     {
         mainFrame.setDefaultCloseOperation(
                 exitOnMainWindowClose
-                    ? JFrame.DISPOSE_ON_CLOSE
-                    : ConfigurationUtils.isMinimizeInsteadOfHide()
+                    ? (ConfigurationUtils.isMinimizeOnClose()
                         ? JFrame.DO_NOTHING_ON_CLOSE
-                        : JFrame.HIDE_ON_CLOSE);
+                        : JFrame.DISPOSE_ON_CLOSE)
+                    : JFrame.HIDE_ON_CLOSE);
     }
 
     @Override
@@ -449,7 +449,7 @@ public class UIServiceImpl
         return
             (mainFrame != null)
                 && (mainFrame.getDefaultCloseOperation()
-                        == JFrame.DISPOSE_ON_CLOSE);
+                        != JFrame.HIDE_ON_CLOSE);
     }
 
     /**
