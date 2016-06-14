@@ -243,7 +243,7 @@ public class ConfigurationUtils
     /**
      * The configuration service.
      */
-    private static ConfigurationService configService
+    private static final ConfigurationService configService
         = UtilActivator.getConfigurationService();
 
     /**
@@ -821,7 +821,7 @@ public class ConfigurationUtils
             = UtilActivator.getResources().getSettingsString(
                 SINGLE_WINDOW_INTERFACE_ENABLED);
 
-        boolean isEnabled = false;
+        final boolean isEnabled;
 
         if (singleInterfaceEnabledProp != null)
             isEnabled = Boolean.parseBoolean(singleInterfaceEnabledProp);
@@ -831,9 +831,8 @@ public class ConfigurationUtils
                 "impl.gui.SINGLE_WINDOW_INTERFACE"));
 
         // Load the advanced account configuration disabled.
-        isSingleWindowInterfaceEnabled
-            = configService.getBoolean( SINGLE_WINDOW_INTERFACE_ENABLED,
-                                        isEnabled);
+        isSingleWindowInterfaceEnabled = configService.getBoolean(
+            SINGLE_WINDOW_INTERFACE_ENABLED, isEnabled);
 
         if(isFontSupportEnabled())
         {
@@ -2733,7 +2732,7 @@ public class ConfigurationUtils
         Boolean showAccountConfigProp
             = configService.getBoolean(SHOW_ACCOUNT_CONFIG_PROP, defaultValue);
 
-        return showAccountConfigProp.booleanValue();
+        return showAccountConfigProp;
     }
 
     /**
@@ -2742,6 +2741,7 @@ public class ConfigurationUtils
     private static class ConfigurationChangeListener
             implements PropertyChangeListener
     {
+        @Override
         public void propertyChange(PropertyChangeEvent evt)
         {
             // All properties we're interested in here are Strings.
@@ -2758,14 +2758,7 @@ public class ConfigurationUtils
             else if (evt.getPropertyName().equals(
                 "service.gui.AUTO_POPUP_NEW_MESSAGE"))
             {
-                if("yes".equalsIgnoreCase(newValue))
-                {
-                    autoPopupNewMessage = true;
-                }
-                else
-                {
-                    autoPopupNewMessage = false;
-                }
+                autoPopupNewMessage = "yes".equalsIgnoreCase(newValue);
             }
             else if (evt.getPropertyName().equals(PNAME_MINIMIZE_ON_CLOSE))
             {
@@ -2789,7 +2782,7 @@ public class ConfigurationUtils
             else if (evt.getPropertyName().equals(
                 "net.java.sip.communicator.impl.systray.showApplication"))
             {
-                isApplicationVisible = Boolean.parseBoolean(newValue);;
+                isApplicationVisible = Boolean.parseBoolean(newValue);
             }
             else if (evt.getPropertyName().equals(
                 "net.java.sip.communicator.impl.gui.quitWarningShown"))

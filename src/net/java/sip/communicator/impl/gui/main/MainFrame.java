@@ -112,7 +112,7 @@ public class MainFrame
      * A mapping of <tt>ProtocolProviderService</tt>s and their indexes.
      */
     private final HashMap<ProtocolProviderService, Integer> protocolProviders
-        = new LinkedHashMap<ProtocolProviderService, Integer>();
+        = new LinkedHashMap<>();
 
     /**
      * The panel containing the accounts status menu.
@@ -130,14 +130,13 @@ public class MainFrame
      * <tt>ContactEventHandler</tt>s.
      */
     private final Map<ProtocolProviderService, ContactEventHandler>
-        providerContactHandlers =
-            new Hashtable<ProtocolProviderService, ContactEventHandler>();
+        providerContactHandlers;
 
     /**
      * A mapping of plug-in components and their corresponding native components.
      */
     private final List<PluginComponentFactory> nativePluginsTable =
-        new ArrayList<PluginComponentFactory>();
+        new ArrayList<>();
 
     /**
      * The north plug-in panel.
@@ -189,6 +188,7 @@ public class MainFrame
      */
     public MainFrame()
     {
+        this.providerContactHandlers = new Hashtable<>();
         if (!ConfigurationUtils.isWindowDecorated())
         {
             this.setUndecorated(true);
@@ -404,8 +404,7 @@ public class MainFrame
         if (callButtonEnabledString != null
                 && callButtonEnabledString.length() > 0)
         {
-            isCallButtonEnabled
-                = new Boolean(callButtonEnabledString).booleanValue();
+            isCallButtonEnabled = Boolean.parseBoolean(callButtonEnabledString);
         }
 
         CallHistoryButton historyButton = new CallHistoryButton();
@@ -431,7 +430,7 @@ public class MainFrame
      */
     private JComponent createTopComponent()
     {
-        JComponent topComponent = null;
+        final JComponent topComponent;
 
         if (OSUtils.IS_MAC)
         {
@@ -859,9 +858,7 @@ public class MainFrame
      */
     public Iterator<ProtocolProviderService> getProtocolProviders()
     {
-        return new LinkedList<ProtocolProviderService>(
-                        protocolProviders.keySet())
-                        .iterator();
+        return new LinkedList<>(protocolProviders.keySet()).iterator();
     }
 
     /**
@@ -1121,6 +1118,7 @@ public class MainFrame
      * @return <tt>true</tt> if there's any currently selected menu related to
      * this <tt>ContactListContainer</tt>, <tt>false</tt> - otherwise
      */
+    @Override
     public boolean isMenuSelected()
     {
         return menu.hasSelectedMenus();
@@ -1134,6 +1132,7 @@ public class MainFrame
     private class GUIProviderPresenceStatusListener
         implements ProviderPresenceStatusListener
     {
+        @Override
         public void providerStatusChanged(ProviderPresenceStatusChangeEvent evt)
         {
             ProtocolProviderService pps = evt.getProvider();
@@ -1141,6 +1140,7 @@ public class MainFrame
             accountStatusPanel.updateStatus(pps, evt.getNewStatus());
         }
 
+        @Override
         public void providerStatusMessageChanged(PropertyChangeEvent evt) {}
     }
 
@@ -1157,6 +1157,7 @@ public class MainFrame
      * Returns the text currently shown in the search field.
      * @return the text currently shown in the search field
      */
+    @Override
     public String getCurrentSearchText()
     {
         return searchField.getText();
@@ -1165,6 +1166,7 @@ public class MainFrame
     /**
      * Clears the current text in the search field.
      */
+    @Override
     public void clearCurrentSearchText()
     {
         searchField.setText("");
@@ -1540,6 +1542,7 @@ public class MainFrame
      * @param event the <tt>PluginComponentEvent</tt> that has notified us of
      * the add of a plugin component
      */
+    @Override
     public void pluginComponentAdded(PluginComponentEvent event)
     {
         PluginComponentFactory factory = event.getPluginComponentFactory();
@@ -1566,6 +1569,7 @@ public class MainFrame
                 {
                     SwingUtilities.invokeLater(new Runnable()
                     {
+                        @Override
                         public void run()
                         {
                             addNativePlugins();
@@ -1591,6 +1595,7 @@ public class MainFrame
      * @param event the <tt>PluginComponentEvent</tt> that notified us of the
      * remove of a plugin component
      */
+    @Override
     public void pluginComponentRemoved(PluginComponentEvent event)
     {
         final PluginComponentFactory factory =
@@ -1614,6 +1619,7 @@ public class MainFrame
 
                     SwingUtilities.invokeLater(new Runnable()
                     {
+                        @Override
                         public void run()
                         {
                             removePluginComponent(
@@ -1693,6 +1699,7 @@ public class MainFrame
     /**
      * Brings this window to front.
      */
+    @Override
     public void bringToFront()
     {
         this.toFront();
@@ -1702,6 +1709,7 @@ public class MainFrame
      * Returns the identifier of this window.
      * @return the identifier of this window
      */
+    @Override
     public WindowID getIdentifier()
     {
         return ExportedWindow.MAIN_WINDOW;
@@ -1711,6 +1719,7 @@ public class MainFrame
      * Returns this window.
      * @return this window
      */
+    @Override
     public Object getSource()
     {
         return this;
@@ -1719,6 +1728,7 @@ public class MainFrame
     /**
      * Maximizes this window.
      */
+    @Override
     public void maximize()
     {
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -1727,6 +1737,7 @@ public class MainFrame
     /**
      * Minimizes this window.
      */
+    @Override
     public void minimize()
     {
         this.setExtendedState(JFrame.ICONIFIED);
@@ -1761,6 +1772,7 @@ public class MainFrame
         ConfigurationUtils.setApplicationVisible(isVisible);
 
         SwingUtilities.invokeLater(new Runnable(){
+            @Override
             public void run()
             {
                 if(isVisible)
@@ -1877,6 +1889,7 @@ public class MainFrame
     /**
      * Implementation of {@link ExportedWindow#setParams(Object[])}.
      */
+    @Override
     public void setParams(Object[] windowParams) {}
 
     /**
@@ -1926,6 +1939,7 @@ public class MainFrame
             {
                 SwingUtilities.invokeLater(new Runnable()
                 {
+                    @Override
                     public void run()
                     {
                         if (ConfigurationUtils.isQuitWarningShown())
@@ -1976,6 +1990,7 @@ public class MainFrame
      * window. Performs the appropriate actions depending on the current state
      * of the contact list.
      */
+    @Override
     public void enterKeyTyped()
     {
         if (unknownContactPanel != null && unknownContactPanel.isVisible())
@@ -1994,6 +2009,7 @@ public class MainFrame
      * was the focused window. Performs the appropriate actions depending on the
      * current state of the contact list.
      */
+    @Override
     public void ctrlEnterKeyTyped()
     {
         if (unknownContactPanel != null && unknownContactPanel.isVisible())
@@ -2023,6 +2039,7 @@ public class MainFrame
     /**
      * Reloads skin information
      */
+    @Override
     public void loadSkin()
     {
         this.mainPanel.setBackground(new Color(

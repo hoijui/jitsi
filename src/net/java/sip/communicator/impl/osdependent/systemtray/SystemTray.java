@@ -47,7 +47,7 @@ public abstract class SystemTray
 
     /**
      * Adds a <tt>TrayIcon</tt> to this system tray implementation.
-     * 
+     *
      * @param trayIcon the <tt>TrayIcon</tt> to add
      */
     public abstract void addTrayIcon(TrayIcon trayIcon);
@@ -55,8 +55,8 @@ public abstract class SystemTray
     /**
      * Creates an implementation specific <tt>TrayIcon</tt> that can later be
      * added with {@link #addTrayIcon(TrayIcon)}.
-     * 
-     * @param image the <tt>Image</tt> to be used
+     *
+     * @param icon the <tt>Image</tt> to be used
      * @param tooltip the string to be used as tooltip text; if the value is
      *            <tt>null</tt> no tooltip is shown
      * @param popup the menu to be used for the tray icon's popup menu; if the
@@ -70,7 +70,7 @@ public abstract class SystemTray
     /**
      * Determines if the popup menu for the icon is to be a Swing
      * <tt>JPopupMenu</tt> or an AWT <tt>PopupMenu</tt>
-     * 
+     *
      * @return <tt>true</tt> for a <tt>JPopupMenu</tt>, <tt>false</tt> for a
      *         <tt>PopupMenu</tt>
      */

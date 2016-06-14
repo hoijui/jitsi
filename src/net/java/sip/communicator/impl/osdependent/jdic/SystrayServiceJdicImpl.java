@@ -76,8 +76,8 @@ public class SystrayServiceJdicImpl
     private static final Logger logger
         = Logger.getLogger(SystrayServiceJdicImpl.class);
 
-    /**
-     * The various icons used on the systray
+    /*
+     * The various icons used on the {@link #systray}
      */
     private ImageIcon currentIcon;
 
@@ -128,11 +128,11 @@ public class SystrayServiceJdicImpl
     {
         super(OsDependentActivator.bundleContext);
 
-        SystemTray systray;
+        SystemTray tmpSystray;
 
         try
         {
-            systray = SystemTray.getSystemTray();
+            tmpSystray = SystemTray.getSystemTray();
         }
         catch (Throwable t)
         {
@@ -140,12 +140,12 @@ public class SystrayServiceJdicImpl
                 throw (ThreadDeath) t;
             else
             {
-                systray = null;
+                tmpSystray = null;
                 if (!GraphicsEnvironment.isHeadless())
                     logger.error("Failed to create a systray!", t);
             }
         }
-        this.systray = systray;
+        this.systray = tmpSystray;
 
         if (this.systray != null)
             initSystray();
@@ -262,6 +262,7 @@ public class SystrayServiceJdicImpl
         trayIcon.addActionListener(
                 new ActionListener()
                 {
+                    @Override
                     public void actionPerformed(ActionEvent e)
                     {
                         UIService uiService
@@ -285,6 +286,7 @@ public class SystrayServiceJdicImpl
                     menu,
                     new PopupMenuListener()
                     {
+                        @Override
                         public void popupMenuWillBecomeVisible(PopupMenuEvent e)
                         {
                             ImageIcon newIcon = logoIconWhite;
@@ -292,6 +294,7 @@ public class SystrayServiceJdicImpl
                             currentIcon = newIcon;
                         }
 
+                        @Override
                         public void popupMenuWillBecomeInvisible(
                                 PopupMenuEvent e)
                         {
@@ -300,6 +303,7 @@ public class SystrayServiceJdicImpl
                             currentIcon = newIcon;
                         }
 
+                        @Override
                         public void popupMenuCanceled(PopupMenuEvent e)
                         {
                             popupMenuWillBecomeInvisible(e);
@@ -333,6 +337,7 @@ public class SystrayServiceJdicImpl
 
         SwingUtilities.invokeLater(new Runnable()
         {
+            @Override
             public void run()
             {
                 systray.addTrayIcon(trayIcon);
@@ -349,6 +354,7 @@ public class SystrayServiceJdicImpl
      *
      * @param imageType the type of the image to set.
      */
+    @Override
     public void setSystrayIcon(int imageType)
     {
         if (!checkInitialized())
@@ -464,7 +470,7 @@ public class SystrayServiceJdicImpl
         if (OSUtils.IS_MAC)
         {
             Application application = Application.getApplication();
-            application.setDockIconBadge(new Integer(count).toString());
+            application.setDockIconBadge(Integer.toString(count));
         }
         else if (OSUtils.IS_WINDOWS)
         {
@@ -485,7 +491,7 @@ public class SystrayServiceJdicImpl
             BufferedImage img = null;
             if (count > 0)
             {
-                img = createOverlayImage(new Integer(count).toString());
+                img = createOverlayImage(Integer.toString(count));
             }
 
             try
@@ -545,6 +551,7 @@ public class SystrayServiceJdicImpl
      * disabling popup.
      * @return the previously used popup handler
      */
+    @Override
     public PopupMessageHandler setActivePopupMessageHandler(
             PopupMessageHandler newHandler)
     {
@@ -572,6 +579,7 @@ public class SystrayServiceJdicImpl
          * @param evt the event triggered when user clicks on a systray popup
          * message
          */
+        @Override
         public void popupMessageClicked(SystrayPopupMessageEvent evt)
         {
             Object o = evt.getTag();
@@ -590,6 +598,7 @@ public class SystrayServiceJdicImpl
     private class DelayedInitSystrayServiceListener
         implements ServiceListener
     {
+        @Override
         public void serviceChanged(ServiceEvent serviceEvent)
         {
             if (serviceEvent.getType() == ServiceEvent.REGISTERED)

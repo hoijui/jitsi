@@ -177,6 +177,7 @@ public class GeneralConfigurationPanel
 
         SwingUtilities.invokeLater(new Runnable()
         {
+            @Override
             public void run()
             {
                 scroller.getVerticalScrollBar().setValue(0);
@@ -210,6 +211,7 @@ public class GeneralConfigurationPanel
         autoStartCheckBox.setToolTipText(label);
         autoStartCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 try
@@ -247,6 +249,7 @@ public class GeneralConfigurationPanel
             Resources.getString("plugin.generalconfig.MINIMIZE_ON_CLOSE"));
         chk.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 boolean value = ((JCheckBox) e.getSource()).isSelected();
@@ -300,6 +303,7 @@ public class GeneralConfigurationPanel
 
         groupMessagesCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setMultiChatWindowEnabled(
@@ -327,6 +331,7 @@ public class GeneralConfigurationPanel
 
         chatAlertOnMessageCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setAlerterEnabled(
@@ -354,6 +359,7 @@ public class GeneralConfigurationPanel
 
         leaveChatroomCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setLeaveChatRoomOnWindowClose(
@@ -381,6 +387,7 @@ public class GeneralConfigurationPanel
 
         recentMessagesCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setRecentMessagesShown(
@@ -413,6 +420,7 @@ public class GeneralConfigurationPanel
 
         logHistoryCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 mhs.setHistoryLoggingEnabled(logHistoryCheckBox.isSelected());
@@ -446,6 +454,7 @@ public class GeneralConfigurationPanel
 
         showHistoryCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setHistoryShown(
@@ -464,6 +473,7 @@ public class GeneralConfigurationPanel
 
         logHistoryCheckBox.addChangeListener(new ChangeListener()
         {
+            @Override
             public void stateChanged(ChangeEvent e)
             {
                 showHistoryCheckBox.setEnabled(
@@ -475,6 +485,7 @@ public class GeneralConfigurationPanel
 
         showHistoryCheckBox.addChangeListener(new ChangeListener()
         {
+            @Override
             public void stateChanged(ChangeEvent e)
             {
                 historySizeSpinner.setEnabled(
@@ -485,11 +496,11 @@ public class GeneralConfigurationPanel
         historySizeSpinnerModel.addChangeListener(
             new ChangeListener()
             {
+                @Override
                 public void stateChanged(ChangeEvent e)
                 {
                     ConfigurationUtils.setChatHistorySize(
-                        ((Integer) historySizeSpinner
-                            .getValue()).intValue());
+                        (Integer) historySizeSpinner.getValue());
                 }
             });
 
@@ -543,6 +554,7 @@ public class GeneralConfigurationPanel
         sendMessageComboBox.addItemListener(
                 new ItemListener()
                 {
+                    @Override
                     public void itemStateChanged(ItemEvent ev)
                     {
                         ConfigurationUtils.setSendMessageCommand(
@@ -574,6 +586,7 @@ public class GeneralConfigurationPanel
 
         enableTypingNotifiCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setSendTypingNotifications(
@@ -602,6 +615,7 @@ public class GeneralConfigurationPanel
 
         bringToFrontCheckBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setAutoPopupNewMessage(
@@ -671,6 +685,7 @@ public class GeneralConfigurationPanel
 
         notifConfigComboBox.addItemListener(new ItemListener()
         {
+            @Override
             public void itemStateChanged(ItemEvent evt)
             {
                 if (notifConfigComboBox.getSelectedItem() instanceof String)
@@ -701,13 +716,13 @@ public class GeneralConfigurationPanel
     }
 
     /**
-     * Model for the language combobox.
+     * Model for the language combo-box.
      */
     private static class LocaleItem
         implements Comparable<LocaleItem>
     {
-        private Locale locale;
-        private int translated;
+        private final Locale locale;
+        private final int translated;
 
         public LocaleItem(Locale locale, int translated)
         {
@@ -746,6 +761,7 @@ public class GeneralConfigurationPanel
             labels[2].setHorizontalAlignment(JLabel.RIGHT);
         }
 
+        @Override
         public Component getListCellRendererComponent(JList list, Object value,
             int index, boolean isSelected, boolean cellHasFocus)
         {
@@ -773,7 +789,7 @@ public class GeneralConfigurationPanel
 
             return this;
         }
-    } 
+    }
 
     /**
      * Initializes the local configuration panel.
@@ -830,6 +846,7 @@ public class GeneralConfigurationPanel
         localesConfigComboBox.setSelectedItem(currentLocaleItem);
         localesConfigComboBox.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 GeneralConfigPluginActivator.getUIService().getPopupDialog().
@@ -890,6 +907,7 @@ public class GeneralConfigurationPanel
 
         formatPhoneNumber.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setNormalizePhoneNumber(
@@ -934,6 +952,7 @@ public class GeneralConfigurationPanel
 
         acceptPhoneNumberWithAlphaChars.addActionListener(new ActionListener()
         {
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 ConfigurationUtils.setAcceptPhoneNumberWithAlphaChars(
@@ -1010,6 +1029,7 @@ public class GeneralConfigurationPanel
             Resources.getString("plugin.generalconfig.CHECK_FOR_UPDATES"));
         updateCheckBox.addActionListener(new ActionListener() {
 
+            @Override
             public void actionPerformed(ActionEvent e)
             {
                 GeneralConfigPluginActivator.getConfigurationService()
