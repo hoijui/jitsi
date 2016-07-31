@@ -15,38 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.awt.*;
 import java.util.*;
 
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
-import net.java.sip.communicator.plugin.otr.authdialog.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
+import net.java.sip.communicator.plugin.omemo.authdialog.*;
 
 /**
- * Default OtrActionHandler implementation that opens SWING buddy authenticate
+ * Default OmemoActionHandler implementation that opens SWING buddy authenticate
  * dialog.
  *
  * @author Daniel Perren
  * @author Pawel Domas
  */
-public class SwingOtrActionHandler
-    implements OtrActionHandler
+public class SwingOmemoActionHandler
+    implements OmemoActionHandler
 {
-    @Override
     public void onAuthenticateLinkClicked(UUID uuid)
     {
-        OtrContact otrContact = ScOtrEngineImpl.getOtrContact(
-                    ScOtrEngineImpl.getScSessionForGuid(uuid).getSessionID());
+        OmemoContact otrContact = ScOmemoEngineImpl.getOtrContact(
+                    ScOmemoEngineImpl.getScSessionForGuid(uuid).getSessionID());
 
         openAuthDialog(otrContact);
     }
 
-    public static void openAuthDialog(OtrContact contact)
+    public static void openAuthDialog(OmemoContact contact)
     {
         // Launch auth buddy dialog.
-        OtrBuddyAuthenticationDialog authenticateBuddyDialog
-                = new OtrBuddyAuthenticationDialog(contact);
+        OmemoBuddyAuthenticationDialog authenticateBuddyDialog
+                = new OmemoBuddyAuthenticationDialog(contact);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 

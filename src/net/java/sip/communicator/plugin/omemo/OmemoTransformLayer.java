@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
-import net.java.otr4j.io.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.omemo4j.io.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.service.protocol.event.*;
 
@@ -27,13 +27,15 @@ import net.java.sip.communicator.service.protocol.event.*;
  *
  * @author George Politis
  */
-public class OtrTransformLayer
+public class OmemoTransformLayer
     implements TransformLayer
 {
-    @Override
+    /*
+     * Implements TransformLayer#messageDelivered(MessageDeliveredEvent).
+     */
     public MessageDeliveredEvent messageDelivered(MessageDeliveredEvent evt)
     {
-        if (OtrActivator.scOtrEngine.isMessageUIDInjected(evt
+        if (OmemoActivator.scOmemoEngine.isMessageUIDInjected(evt
             .getSourceMessage().getMessageUID()))
             // If this is a message otr4j injected earlier, don't display it,
             // this may have to change when we add support for fragmentation..
@@ -42,30 +44,35 @@ public class OtrTransformLayer
             return evt;
     }
 
-    @Override
+    /*
+     * Implements
+     * TransformLayer#messageDeliveryFailed(MessageDeliveryFailedEvent).
+     */
     public MessageDeliveryFailedEvent messageDeliveryFailed(
         MessageDeliveryFailedEvent evt)
     {
         return evt;
     }
 
-    @Override
+    /*
+     * Implements TransformLayer#messageDeliveryPending(MessageDeliveredEvent).
+     */
     public MessageDeliveredEvent[] messageDeliveryPending(
         MessageDeliveredEvent evt)
     {
         Contact contact = evt.getDestinationContact();
-        OtrContact otrContact =
-            OtrContactManager.getOtrContact(contact, evt.getContactResource());
+        OmemoContact otrContact =
+            OmemoContactManager.getOtrContact(contact, evt.getContactResource());
 
         // If this is a message otr4j injected earlier, return the event as is.
-        if (OtrActivator.scOtrEngine.isMessageUIDInjected(evt
+        if (OmemoActivator.scOmemoEngine.isMessageUIDInjected(evt
             .getSourceMessage().getMessageUID()))
             return new MessageDeliveredEvent[] {evt};
 
         // Process the outgoing message.
         String msgContent = evt.getSourceMessage().getContent();
         String[] processedMessageContent =
-            OtrActivator.scOtrEngine.transformSending(otrContact, msgContent);
+            OmemoActivator.scOmemoEngine.transformSending(otrContact, msgContent);
 
         if (processedMessageContent == null
             || processedMessageContent.length <= 0
@@ -108,18 +115,20 @@ public class OtrTransformLayer
         return processedEvents;
     }
 
-    @Override
+    /*
+     * Implements TransformLayer#messageReceived(MessageReceivedEvent).
+     */
     public MessageReceivedEvent messageReceived(MessageReceivedEvent evt)
     {
         Contact contact = evt.getSourceContact();
-        OtrContact otrContact =
-            OtrContactManager.getOtrContact(contact, evt.getContactResource());
+        OmemoContact otrContact =
+            OmemoContactManager.getOtrContact(contact, evt.getContactResource());
 
         // Process the incoming message.
         String msgContent = evt.getSourceMessage().getContent();
 
         String processedMessageContent =
-            OtrActivator.scOtrEngine.transformReceiving(otrContact, msgContent);
+            OmemoActivator.scOmemoEngine.transformReceiving(otrContact, msgContent);
 
         if (processedMessageContent == null
             || processedMessageContent.length() < 1)

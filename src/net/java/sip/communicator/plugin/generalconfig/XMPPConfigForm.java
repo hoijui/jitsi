@@ -86,6 +86,7 @@ extends TransparentPanel
 
         useAllResourcesForCapabilitiesCheckbox.addActionListener(
             new ActionListener() {
+                @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     configurationService.setProperty(
                         PROP_XMPP_USE_ALL_RESOURCES_FOR_CAPABILITIES,

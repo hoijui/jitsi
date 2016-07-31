@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -26,10 +26,10 @@ import net.java.sip.communicator.util.*;
 import org.osgi.framework.*;
 
 /**
- * The OtrContactManager is used for accessing <tt>OtrContact</tt>s in a static
+ * The OmemoContactManager is used for accessing <tt>OtrContact</tt>s in a static
  * way.
  *
- * The <tt>OtrContact</tt> class is just a wrapper of [Contact, ContactResource]
+ * The <tt>OmemoContact</tt> class is just a wrapper of [Contact, ContactResource]
  * pairs. Its purpose is for the otr plugin to be able to create different
  * <tt>Session</tt>s for every ContactResource that a Contact has.
  *
@@ -38,22 +38,22 @@ import org.osgi.framework.*;
  * @author Marin Dzhigarov
  *
  */
-public class OtrContactManager implements ServiceListener
+public class OmemoContactManager implements ServiceListener
 {
 
     /**
      * The logger
      */
-    private final Logger logger = Logger.getLogger(OtrContactManager.class);
+    private final Logger logger = Logger.getLogger(OmemoContactManager.class);
 
     /**
-     * A map that caches OtrContacts to minimize memory usage.
+     * A map that caches OmemoContacts to minimize memory usage.
      */
-    private static final Map<Contact, List<OtrContact>> contactsMap =
-        new ConcurrentHashMap<>();
+    private static final Map<Contact, List<OmemoContact>> contactsMap =
+        new ConcurrentHashMap<Contact, List<OmemoContact>>();
 
     /**
-     * The <tt>OtrContact</tt> class is just a wrapper of
+     * The <tt>OmemoContact</tt> class is just a wrapper of
      * [Contact, ContactResource] pairs. Its purpose is for the otr plugin to be
      * able to create different <tt>Session</tt>s for every ContactResource that
      * a Contact has.
@@ -61,28 +61,27 @@ public class OtrContactManager implements ServiceListener
      * @author Marin Dzhigarov
      *
      */
-    public static class OtrContact
+    public static class OmemoContact
     {
         public final Contact contact;
 
         public final ContactResource resource;
 
-        private OtrContact(Contact contact, ContactResource resource)
+        private OmemoContact(Contact contact, ContactResource resource)
         {
             this.contact = contact;
             this.resource = resource;
         }
 
-        @Override
         public boolean equals(Object obj)
         {
             if (this == obj)
                 return true;
 
-            if (!(obj instanceof OtrContact))
+            if (!(obj instanceof OmemoContact))
                 return false;
 
-            OtrContact other = (OtrContact) obj;
+            OmemoContact other = (OmemoContact) obj;
 
             if (this.contact != null && this.contact.equals(other.contact))
             {
@@ -95,7 +94,6 @@ public class OtrContactManager implements ServiceListener
             return false;
         }
 
-        @Override
         public int hashCode()
         {
             int result = 17;
@@ -108,32 +106,32 @@ public class OtrContactManager implements ServiceListener
     }
 
     /**
-     * Gets the <tt>OtrContact</tt> that represents this
+     * Gets the <tt>OmemoContact</tt> that represents this
      * [Contact, ContactResource] pair from the cache. If such pair does not
      * still exist it is then created and cached for further usage.
      *
-     * @param contact the <tt>Contact</tt> that the returned OtrContact
+     * @param contact the <tt>Contact</tt> that the returned OmemoContact
      *                  represents.
-     * @param resource the <tt>ContactResource</tt> that the returned OtrContact
+     * @param resource the <tt>ContactResource</tt> that the returned OmemoContact
      *                  represents.
-     * @return The <tt>OtrContact</tt> that represents this
+     * @return The <tt>OmemoContact</tt> that represents this
      *                  [Contact, ContactResource] pair.
      */
-    public static OtrContact getOtrContact(
+    public static OmemoContact getOtrContact(
         Contact contact, ContactResource resource)
     {
         if (contact == null)
             return null;
 
-        List<OtrContact> otrContactsList = contactsMap.get(contact);
+        List<OmemoContact> otrContactsList = contactsMap.get(contact);
         if (otrContactsList != null)
         {
-            for (OtrContact otrContact : otrContactsList)
+            for (OmemoContact otrContact : otrContactsList)
             {
                 if (resource != null && resource.equals(otrContact.resource))
                     return otrContact;
             }
-            OtrContact otrContact = new OtrContact(contact, resource);
+            OmemoContact otrContact = new OmemoContact(contact, resource);
             synchronized (otrContactsList)
             {
                 while (!otrContactsList.contains(otrContact))
@@ -147,22 +145,21 @@ public class OtrContactManager implements ServiceListener
             {
                 while (!contactsMap.containsKey(contact))
                 {
-                    otrContactsList = new ArrayList<>();
+                    otrContactsList = new ArrayList<OmemoContact>();
                     contactsMap.put(contact, otrContactsList);
                 }
             }
-            return getOtrContact(contact, resource);
+            return getOmemoContact(contact, resource);
         }
     }
 
     /**
      * Cleans up unused cached up Contacts.
      */
-    @Override
     public void serviceChanged(ServiceEvent event)
     {
         Object service
-            = OtrActivator.bundleContext.getService(event.getServiceReference());
+            = OmemoActivator.bundleContext.getService(event.getServiceReference());
 
         if (!(service instanceof ProtocolProviderService))
             return;
@@ -173,7 +170,7 @@ public class OtrContactManager implements ServiceListener
             {
                 logger.debug(
                         "Unregistering a ProtocolProviderService, cleaning"
-                            + " OTR's Contact to OtrContact map");
+                            + " OTR's Contact to OmemoContact map");
             }
 
             ProtocolProviderService provider

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.util.*;
@@ -23,8 +23,8 @@ import java.util.List;
 
 import javax.swing.table.*;
 
-import net.java.sip.communicator.plugin.otr.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.contactlist.*;
 import net.java.sip.communicator.service.protocol.*;
 
@@ -38,8 +38,11 @@ import org.osgi.framework.*;
  */
 public class KnownFingerprintsTableModel
     extends AbstractTableModel
-    implements ScOtrKeyManagerListener
+    implements ScOmemoKeyManagerListener
 {
+    /**
+     * Serial version UID.
+     */
     private static final long serialVersionUID = 0L;
 
     public static final int CONTACTNAME_INDEX = 0;
@@ -48,17 +51,17 @@ public class KnownFingerprintsTableModel
 
     public static final int FINGERPRINT_INDEX = 2;
 
-    public final Map<Contact, List<String>> allContactsFingerprints =
-        new LinkedHashMap<>();
+    public final LinkedHashMap<Contact, List<String>> allContactsFingerprints =
+        new LinkedHashMap<Contact, List<String>>();
 
     public KnownFingerprintsTableModel()
     {
         // Get the protocolproviders
-        ServiceReference[] protocolProviderRefs;
+        ServiceReference[] protocolProviderRefs = null;
         try
         {
             protocolProviderRefs =
-                OtrActivator.bundleContext
+                OmemoActivator.bundleContext
                     .getServiceReferences(
                         ProtocolProviderService.class.getName(), null);
         }
@@ -67,19 +70,20 @@ public class KnownFingerprintsTableModel
             return;
         }
 
-        if (protocolProviderRefs == null || protocolProviderRefs.length < 1)
+        if (protocolProviderRefs == null
+            || protocolProviderRefs.length < 1)
             return;
 
         // Populate contacts.
         for (int i = 0; i < protocolProviderRefs.length; i++)
         {
             ProtocolProviderService provider
-                = (ProtocolProviderService) OtrActivator
+                = (ProtocolProviderService) OmemoActivator
                     .bundleContext
                         .getService(protocolProviderRefs[i]);
 
             Iterator<MetaContact> metaContacts =
-                OtrActivator.getContactListService()
+                OmemoActivator.getContactListService()
                     .findAllMetaContactsForProvider(provider);
             while (metaContacts.hasNext())
             {
@@ -90,37 +94,42 @@ public class KnownFingerprintsTableModel
                     Contact contact = contacts.next();
                     allContactsFingerprints.put(
                         contact,
-                        OtrActivator.scOtrKeyManager.getAllRemoteFingerprints(
+                        OmemoActivator.scOmemoKeyManager.getAllRemoteFingerprints(
                             contact));
                 }
             }
         }
-        OtrActivator.scOtrKeyManager.addListener(this);
+        OmemoActivator.scOmemoKeyManager.addListener(this);
     }
 
+    /**
+     * Implements AbstractTableModel#getColumnName(int).
+     */
     @Override
     public String getColumnName(int column)
     {
         switch (column)
         {
         case CONTACTNAME_INDEX:
-            return OtrActivator.resourceService
+            return OmemoActivator.resourceService
                 .getI18NString(
-                    "plugin.otr.configform.COLUMN_NAME_CONTACT");
+                    "plugin.omemo.configform.COLUMN_NAME_CONTACT");
         case VERIFIED_INDEX:
-            return OtrActivator.resourceService
+            return OmemoActivator.resourceService
                 .getI18NString(
-                    "plugin.otr.configform.COLUMN_NAME_VERIFIED_STATUS");
+                    "plugin.omemo.configform.COLUMN_NAME_VERIFIED_STATUS");
         case FINGERPRINT_INDEX:
-            return OtrActivator.resourceService
+            return OmemoActivator.resourceService
                 .getI18NString(
-                    "plugin.otr.configform.FINGERPRINT");
+                    "plugin.omemo.configform.FINGERPRINT");
         default:
             return null;
         }
     }
 
-    @Override
+    /**
+     * Implements AbstractTableModel#getValueAt(int,int).
+     */
     public Object getValueAt(int row, int column)
     {
         Contact contact = getContactFromRow(row);
@@ -131,12 +140,12 @@ public class KnownFingerprintsTableModel
             return contact.getDisplayName();
         case VERIFIED_INDEX:
             // TODO: Maybe use a CheckBoxColumn?
-            return (OtrActivator.scOtrKeyManager
+            return (OmemoActivator.scOmemoKeyManager
                         .isVerified(contact, fingerprint))
-                ? OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.configform.COLUMN_VALUE_VERIFIED_TRUE")
-                : OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.configform.COLUMN_VALUE_VERIFIED_FALSE");
+                ? OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.configform.COLUMN_VALUE_VERIFIED_TRUE")
+                : OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.configform.COLUMN_VALUE_VERIFIED_FALSE");
         case FINGERPRINT_INDEX:
             return fingerprint;
         default:
@@ -200,7 +209,9 @@ public class KnownFingerprintsTableModel
     return fingerprint;
     }
 
-    @Override
+    /**
+     * Implements AbstractTableModel#getRowCount().
+     */
     public int getRowCount()
     {
         int rowCount = 0;
@@ -210,19 +221,21 @@ public class KnownFingerprintsTableModel
         return rowCount;
     }
 
-    @Override
+    /**
+     * Implements AbstractTableModel#getColumnCount().
+     */
     public int getColumnCount()
     {
         return 3;
     }
 
     @Override
-    public void contactVerificationStatusChanged(OtrContact otrContact)
+    public void contactVerificationStatusChanged(OmemoContact otrContact)
     {
         Contact contact = otrContact.contact;
         allContactsFingerprints.put(
             contact,
-            OtrActivator.scOtrKeyManager.getAllRemoteFingerprints(contact));
+            OmemoActivator.scOmemoKeyManager.getAllRemoteFingerprints(contact));
         this.fireTableDataChanged();
     }
 }

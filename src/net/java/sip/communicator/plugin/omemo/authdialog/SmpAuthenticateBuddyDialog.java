@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 
-import net.java.otr4j.session.*;
+import net.java.omemo4j.session.*;
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 
 /**
  * The dialog that pops up when the remote party send us SMP
@@ -38,16 +38,16 @@ import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
 public class SmpAuthenticateBuddyDialog
     extends SIPCommDialog
 {
-    private final OtrContact otrContact;
+    private final OmemoContact otrContact;
 
     private final String question;
 
     private final InstanceTag receiverTag;
 
     public SmpAuthenticateBuddyDialog(
-        OtrContact contact, InstanceTag receiverTag, String question)
+        OmemoContact contact, InstanceTag receiverTag, String question)
     {
-        this.otrContact = contact;
+        this.omemoContact = contact;
         this.receiverTag = receiverTag;
         this.question = question;
         initComponents();
@@ -56,9 +56,9 @@ public class SmpAuthenticateBuddyDialog
     private void initComponents()
     {
         this.setTitle(
-            OtrActivator.resourceService
+            OmemoActivator.resourceService
                 .getI18NString(
-                    "plugin.otr.authbuddydialog.TITLE"));
+                    "plugin.omemo.authbuddydialog.TITLE"));
 
         // The main panel that contains all components.
         JPanel mainPanel = new TransparentPanel();
@@ -81,9 +81,9 @@ public class SmpAuthenticateBuddyDialog
             "/" + otrContact.resource.getResourceName() : "";
         String authFromText =
             String.format(
-                OtrActivator.resourceService
+                OmemoActivator.resourceService
                     .getI18NString(
-                        "plugin.otr.authbuddydialog.AUTHENTICATION_FROM",
+                        "plugin.omemo.authbuddydialog.AUTHENTICATION_FROM",
                         new String[]
                             {otrContact.contact.getDisplayName() +
                             resourceName}));
@@ -92,9 +92,9 @@ public class SmpAuthenticateBuddyDialog
 
         // Add "general info" text to the main panel.
         JTextArea generalInfo = new CustomTextArea();
-        generalInfo.setText(OtrActivator.resourceService
+        generalInfo.setText(OmemoActivator.resourceService
             .getI18NString(
-                "plugin.otr.authbuddydialog.AUTHENTICATION_INFO"));
+                "plugin.omemo.authbuddydialog.AUTHENTICATION_INFO"));
         mainPanel.add(generalInfo);
 
         // Add "authentication-by-secret" info text to the main panel.
@@ -105,9 +105,9 @@ public class SmpAuthenticateBuddyDialog
                     getFontName()
                 , Font.ITALIC
                 , 10);
-        authBySecretInfo.setText(OtrActivator.resourceService
+        authBySecretInfo.setText(OmemoActivator.resourceService
             .getI18NString(
-                "plugin.otr.authbuddydialog.AUTH_BY_SECRET_INFO_RESPOND"));
+                "plugin.omemo.authbuddydialog.AUTH_BY_SECRET_INFO_RESPOND"));
         authBySecretInfo.setFont(newFont);
         mainPanel.add(authBySecretInfo);
 
@@ -125,9 +125,9 @@ public class SmpAuthenticateBuddyDialog
         // Add question label.
         JLabel questionLabel =
             new JLabel(
-                OtrActivator.resourceService
+                OmemoActivator.resourceService
                     .getI18NString(
-                        "plugin.otr.authbuddydialog.QUESTION_RESPOND"));
+                        "plugin.omemo.authbuddydialog.QUESTION_RESPOND"));
         questionAnswerPanel.add(questionLabel, c);
 
         // Add the question.
@@ -150,8 +150,8 @@ public class SmpAuthenticateBuddyDialog
         c.insets = new Insets(5, 5, 5, 5);
         c.gridy = 2;
         JLabel answerLabel =
-            new JLabel(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.ANSWER"));
+            new JLabel(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.ANSWER"));
         questionAnswerPanel.add(answerLabel, c);
 
         // Add the answer text field.
@@ -167,14 +167,13 @@ public class SmpAuthenticateBuddyDialog
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
         JButton helpButton =
-            new JButton(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.HELP"));
+            new JButton(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.HELP"));
         helpButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent arg0)
             {
-                OtrActivator.scOtrEngine.launchHelp();
+                OmemoActivator.scOmemoEngine.launchHelp();
             }
         });
 
@@ -186,14 +185,13 @@ public class SmpAuthenticateBuddyDialog
         buttonPanel.add(helpButton, c);
 
         JButton cancelButton =
-            new JButton(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.CANCEL"));
+            new JButton(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.CANCEL"));
         cancelButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent e)
             {
-                OtrActivator.scOtrEngine.abortSmp(otrContact);
+                OmemoActivator.scOmemoEngine.abortSmp(otrContact);
                 SmpAuthenticateBuddyDialog.this.dispose();
             }
         });
@@ -203,15 +201,14 @@ public class SmpAuthenticateBuddyDialog
 
         c.gridx = 2;
         JButton authenticateButton =
-            new JButton(OtrActivator.resourceService
+            new JButton(OmemoActivator.resourceService
                 .getI18NString(
-                    "plugin.otr.authbuddydialog.AUTHENTICATE_BUDDY"));
+                    "plugin.omemo.authbuddydialog.AUTHENTICATE_BUDDY"));
         authenticateButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent e)
             {
-                OtrActivator.scOtrEngine.respondSmp(
+                OmemoActivator.scOmemoEngine.respondSmp(
                     otrContact, receiverTag, question, answerTextBox.getText());
                 SmpAuthenticateBuddyDialog.this.dispose();
             }

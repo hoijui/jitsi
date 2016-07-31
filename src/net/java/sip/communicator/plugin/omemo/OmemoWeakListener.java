@@ -15,42 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.lang.ref.*;
 
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.protocol.*;
 
 /**
- * Implements an <tt>ScOtrEngineListener</tt> and
- * <tt>ScOtrKeyManagerListener</tt> listener for the purposes of
- * <tt>OtrContactMenu</tt> and <tt>OtrMetaContactButton</tt>, which listen to
- * <tt>ScOtrEngine</tt> and <tt>ScOtrKeyManager</tt> while weakly referencing
- * them. Fixes a memory leak of <tt>OtrContactMenu</tt> and
- * <tt>OtrMetaContactButton</tt> instances because these cannot determine when
+ * Implements a <tt>ScOmemoEngineListener</tt> and
+ * <tt>ScOmemoKeyManagerListener</tt> listener for the purposes of
+ * <tt>OmemoContactMenu</tt> and <tt>OtrMetaContactButton</tt> which listen to
+ * <tt>ScOmemoEngine</tt> and <tt>ScOmemoKeyManager</tt> while weakly referencing
+ * them. Fixes a memory leak of <tt>OmemoContactMenu</tt> and
+ * <tt>OmemoMetaContactButton</tt> instances because these cannot determine when
  * they are to be explicitly disposed.
  *
  * @author Lyubomir Marinov
- * @param <T> the engine- and key-management-listener to forward events to
  */
-public class OtrWeakListener
-    <T extends ScOtrEngineListener &
-               ScOtrKeyManagerListener>
-    implements ScOtrEngineListener,
-               ScOtrKeyManagerListener
+public class OmemoWeakListener
+    <T extends ScOmemoEngineListener &
+               ScOmemoKeyManagerListener>
+    implements ScOmemoEngineListener,
+               ScOmemoKeyManagerListener
 {
     /**
-     * The <tt>ScOtrEngine</tt> the <tt>T</tt> associated with
+     * The <tt>ScOmemoEngine</tt> the <tt>T</tt> associated with
      * this instance is to listen to.
      */
-    private final ScOtrEngine engine;
+    private final ScOmemoEngine engine;
 
     /**
-     * The <tt>ScOtrKeyManager</tt> the <tt>T</tt> associated
+     * The <tt>ScOmemoKeyManager</tt> the <tt>T</tt> associated
      * with this instance is to listen to.
      */
-    private final ScOtrKeyManager keyManager;
+    private final ScOmemoKeyManager keyManager;
 
     /**
      * The <tt>T</tt> which is associated with this instance
@@ -59,26 +58,26 @@ public class OtrWeakListener
     private final WeakReference<T> listener;
 
     /**
-     * Initializes a new <tt>OtrWeakListener</tt> instance which is to allow
+     * Initializes a new <tt>OmemoWeakListener</tt> instance which is to allow
      * a specific <tt>T</tt> to listener to a specific
-     * <tt>ScOtrEngine</tt> and a specific <tt>ScOtrKeyManager</tt> without
+     * <tt>ScOmemoEngine</tt> and a specific <tt>ScOmemoKeyManager</tt> without
      * being retained by them forever (because they live forever).
      *
      * @param listener the <tt>T</tt> which is to listen to the
      * specified <tt>engine</tt> and <tt>keyManager</tt>
-     * @param engine the <tt>ScOtrEngine</tt> which is to be listened to by
+     * @param engine the <tt>ScOmemoEngine</tt> which is to be listened to by
      * the specified <tt>T</tt>
-     * @param keyManager the <tt>ScOtrKeyManager</tt> which is to be
+     * @param keyManager the <tt>ScOmemoKeyManager</tt> which is to be
      * listened to by the specified <tt>T</tt>
      */
-    public OtrWeakListener(
+    public OmemoWeakListener(
             T listener,
-            ScOtrEngine engine, ScOtrKeyManager keyManager)
+            ScOmemoEngine engine, ScOmemoKeyManager keyManager)
     {
         if (listener == null)
             throw new NullPointerException("listener");
 
-        this.listener = new WeakReference<>(listener);
+        this.listener = new WeakReference<T>(listener);
         this.engine = engine;
         this.keyManager = keyManager;
 
@@ -92,10 +91,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
     public void contactPolicyChanged(Contact contact)
     {
-        ScOtrEngineListener l = getListener();
+        ScOmemoEngineListener l = getListener();
 
         if (l != null)
             l.contactPolicyChanged(contact);
@@ -107,10 +105,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
-    public void contactVerificationStatusChanged(OtrContact contact)
+    public void contactVerificationStatusChanged(OmemoContact contact)
     {
-        ScOtrKeyManagerListener l = getListener();
+        ScOmemoKeyManagerListener l = getListener();
 
         if (l != null)
             l.contactVerificationStatusChanged(contact);
@@ -146,10 +143,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
     public void globalPolicyChanged()
     {
-        ScOtrEngineListener l = getListener();
+        ScOmemoEngineListener l = getListener();
 
         if (l != null)
             l.globalPolicyChanged();
@@ -161,10 +157,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
-    public void sessionStatusChanged(OtrContact contact)
+    public void sessionStatusChanged(OmemoContact contact)
     {
-        ScOtrEngineListener l = getListener();
+        ScOmemoEngineListener l = getListener();
 
         if (l != null)
             l.sessionStatusChanged(contact);
@@ -174,10 +169,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
-    public void multipleInstancesDetected(OtrContact contact)
+    public void multipleInstancesDetected(OmemoContact contact)
     {
-        ScOtrEngineListener l = getListener();
+        ScOmemoEngineListener l = getListener();
 
         if (l != null)
             l.multipleInstancesDetected(contact);
@@ -187,10 +181,9 @@ public class OtrWeakListener
      * Forwards the event/notification to the associated
      * <tt>T</tt> if it is still needed by the application.
      */
-    @Override
-    public void outgoingSessionChanged(OtrContact contact)
+    public void outgoingSessionChanged(OmemoContact contact)
     {
-        ScOtrEngineListener l = getListener();
+        ScOmemoEngineListener l = getListener();
 
         if (l != null)
             l.outgoingSessionChanged(contact);

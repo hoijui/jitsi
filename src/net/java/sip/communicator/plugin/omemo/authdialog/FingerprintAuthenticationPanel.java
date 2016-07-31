@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.security.*;
@@ -24,8 +24,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 
 /**
  * @author George Politis
@@ -40,7 +40,7 @@ public class FingerprintAuthenticationPanel
     /**
      * The Contact that we are authenticating.
      */
-    private final OtrContact otrContact;
+    private final OmemoContact otrContact;
 
     private SIPCommTextField txtRemoteFingerprintComparison;
 
@@ -59,10 +59,10 @@ public class FingerprintAuthenticationPanel
      */
     private JComboBox cbAction;
 
-    private final ActionComboBoxItem actionIHave =
+    private ActionComboBoxItem actionIHave =
         new ActionComboBoxItem(ActionComboBoxItemIndex.I_HAVE);
 
-    private final ActionComboBoxItem actionIHaveNot =
+    private ActionComboBoxItem actionIHaveNot =
         new ActionComboBoxItem(ActionComboBoxItemIndex.I_HAVE_NOT);
 
     private JTextArea txtAction;
@@ -72,9 +72,9 @@ public class FingerprintAuthenticationPanel
      *
      * @param contact The contact that this panel refers to.
      */
-    FingerprintAuthenticationPanel(OtrContact contact)
+    FingerprintAuthenticationPanel(OmemoContact contact)
     {
-        this.otrContact = contact;
+        this.omemoContact = contact;
         initComponents();
         loadContact();
 
@@ -89,9 +89,9 @@ public class FingerprintAuthenticationPanel
         setPreferredSize(new Dimension(350, 300));
 
         JTextArea generalInformation = new CustomTextArea();
-        generalInformation.setText(OtrActivator.resourceService
+        generalInformation.setText(OmemoActivator.resourceService
             .getI18NString(
-                "plugin.otr.authbuddydialog.AUTHENTICATION_FINGERPRINT"));
+                "plugin.omemo.authbuddydialog.AUTHENTICATION_FINGERPRINT"));
         this.add(generalInformation);
 
         add(Box.createVerticalStrut(10));
@@ -120,10 +120,10 @@ public class FingerprintAuthenticationPanel
         cbAction.addItem(actionIHave);
         cbAction.addItem(actionIHaveNot);
 
-        PublicKey pubKey = OtrActivator.scOtrEngine.getRemotePublicKey(otrContact);
+        PublicKey pubKey = OmemoActivator.scOmemoEngine.getRemotePublicKey(otrContact);
         String remoteFingerprint =
-            OtrActivator.scOtrKeyManager.getFingerprintFromPublicKey(pubKey);
-        cbAction.setSelectedItem(OtrActivator.scOtrKeyManager
+            OmemoActivator.scOmemoKeyManager.getFingerprintFromPublicKey(pubKey);
+        cbAction.setSelectedItem(OmemoActivator.scOmemoKeyManager
             .isVerified(otrContact.contact, remoteFingerprint)
                 ? actionIHave : actionIHaveNot);
 
@@ -137,8 +137,8 @@ public class FingerprintAuthenticationPanel
             "/" + otrContact.resource.getResourceName() : "";
 
             txtRemoteFingerprintComparison = new SIPCommTextField(
-            OtrActivator.resourceService
-            .getI18NString("plugin.otr.authbuddydialog.FINGERPRINT_CHECK",
+            OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.authbuddydialog.FINGERPRINT_CHECK",
                 new String[]
                     {otrContact.contact.getDisplayName() + resourceName}));
         txtRemoteFingerprintComparison.getDocument().addDocumentListener(this);
@@ -156,8 +156,8 @@ public class FingerprintAuthenticationPanel
     }
 
     /**
-     * Sets up the {@link OtrBuddyAuthenticationDialog} components so that they
-     * reflect the {@link OtrBuddyAuthenticationDialog#otrContact}
+     * Sets up the {@link OmemoBuddyAuthenticationDialog} components so that they
+     * reflect the {@link OmemoBuddyAuthenticationDialog#otrContact}
      */
     private void loadContact()
     {
@@ -165,41 +165,38 @@ public class FingerprintAuthenticationPanel
         String account =
             otrContact.contact.getProtocolProvider().getAccountID().getDisplayName();
         String localFingerprint =
-            OtrActivator.scOtrKeyManager.getLocalFingerprint(otrContact.contact
+            OmemoActivator.scOmemoKeyManager.getLocalFingerprint(otrContact.contact
                 .getProtocolProvider().getAccountID());
-        txtLocalFingerprint.setText(OtrActivator.resourceService.getI18NString(
-            "plugin.otr.authbuddydialog.LOCAL_FINGERPRINT", new String[]
+        txtLocalFingerprint.setText(OmemoActivator.resourceService.getI18NString(
+            "plugin.omemo.authbuddydialog.LOCAL_FINGERPRINT", new String[]
             { account, localFingerprint }));
 
         // Remote fingerprint.
         String user = otrContact.contact.getDisplayName();
-        PublicKey pubKey = OtrActivator.scOtrEngine.getRemotePublicKey(otrContact);
+        PublicKey pubKey = OmemoActivator.scOmemoEngine.getRemotePublicKey(otrContact);
         String remoteFingerprint =
-            OtrActivator.scOtrKeyManager.getFingerprintFromPublicKey(pubKey);
-        txtRemoteFingerprint.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.authbuddydialog.REMOTE_FINGERPRINT",
+            OmemoActivator.scOmemoKeyManager.getFingerprintFromPublicKey(pubKey);
+        txtRemoteFingerprint.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.authbuddydialog.REMOTE_FINGERPRINT",
                 new String[]
                 { user, remoteFingerprint }));
 
         // Action
-        txtAction.setText(OtrActivator.resourceService.getI18NString(
-            "plugin.otr.authbuddydialog.VERIFY_ACTION", new String[]
+        txtAction.setText(OmemoActivator.resourceService.getI18NString(
+            "plugin.omemo.authbuddydialog.VERIFY_ACTION", new String[]
             { user }));
     }
 
-    @Override
     public void removeUpdate(DocumentEvent e)
     {
         compareFingerprints();
     }
 
-    @Override
     public void insertUpdate(DocumentEvent e)
     {
         compareFingerprints();
     }
 
-    @Override
     public void changedUpdate(DocumentEvent e)
     {
         compareFingerprints();
@@ -207,9 +204,9 @@ public class FingerprintAuthenticationPanel
 
     public void compareFingerprints()
     {
-        PublicKey pubKey = OtrActivator.scOtrEngine.getRemotePublicKey(otrContact);
+        PublicKey pubKey = OmemoActivator.scOmemoEngine.getRemotePublicKey(otrContact);
         String remoteFingerprint =
-            OtrActivator.scOtrKeyManager.getFingerprintFromPublicKey(pubKey);
+            OmemoActivator.scOmemoKeyManager.getFingerprintFromPublicKey(pubKey);
 
         if(txtRemoteFingerprintComparison.getText() == null
             || txtRemoteFingerprintComparison.getText().length() == 0)
@@ -244,7 +241,7 @@ public class FingerprintAuthenticationPanel
 
     /**
      * A special {@link JComboBox} that is hosted in
-     * {@link OtrBuddyAuthenticationDialog#cbAction}.
+     * {@link OmemoBuddyAuthenticationDialog#cbAction}.
      *
      * @author George Politis
      */
@@ -261,13 +258,13 @@ public class FingerprintAuthenticationPanel
             {
             case I_HAVE:
                 text =
-                    OtrActivator.resourceService
-                        .getI18NString("plugin.otr.authbuddydialog.I_HAVE");
+                    OmemoActivator.resourceService
+                        .getI18NString("plugin.omemo.authbuddydialog.I_HAVE");
                 break;
             case I_HAVE_NOT:
                 text =
-                    OtrActivator.resourceService
-                        .getI18NString("plugin.otr.authbuddydialog.I_HAVE_NOT");
+                    OmemoActivator.resourceService
+                        .getI18NString("plugin.omemo.authbuddydialog.I_HAVE_NOT");
                 break;
             }
         }

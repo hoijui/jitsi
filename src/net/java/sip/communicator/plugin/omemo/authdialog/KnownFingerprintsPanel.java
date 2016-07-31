@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -25,7 +25,7 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
+import net.java.sip.communicator.plugin.omemo.*;
 import net.java.sip.communicator.service.protocol.*;
 
 /**
@@ -65,8 +65,8 @@ public class KnownFingerprintsPanel
     {
         this.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-            OtrActivator.resourceService
-                .getI18NString("plugin.otr.configform.KNOWN_FINGERPRINTS")));
+            OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.configform.KNOWN_FINGERPRINTS")));
 
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -80,7 +80,6 @@ public class KnownFingerprintsPanel
         contactsTable.getSelectionModel().addListSelectionListener(
             new ListSelectionListener()
             {
-                @Override
                 public void valueChanged(ListSelectionEvent e)
                 {
                     if (e.getValueIsAdjusting())
@@ -98,17 +97,16 @@ public class KnownFingerprintsPanel
         this.add(pnlButtons);
 
         btnVerifyFingerprint = new JButton();
-        btnVerifyFingerprint.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.configform.VERIFY_FINGERPRINT"));
+        btnVerifyFingerprint.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.configform.VERIFY_FINGERPRINT"));
         btnVerifyFingerprint.setEnabled(false);
 
         btnVerifyFingerprint.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent arg0)
             {
-                OtrActivator.scOtrKeyManager
-                    .verify(OtrContactManager.getOtrContact(
+                OmemoActivator.scOmemoKeyManager
+                    .verify(OmemoContactManager.getOtrContact(
                         getSelectedContact(), null), getSelectedFingerprint());
                 openContact(getSelectedContact(), getSelectedFingerprint());
                 contactsTable.updateUI();
@@ -118,17 +116,16 @@ public class KnownFingerprintsPanel
         pnlButtons.add(btnVerifyFingerprint);
 
         btnForgetFingerprint = new JButton();
-        btnForgetFingerprint.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.configform.FORGET_FINGERPRINT"));
+        btnForgetFingerprint.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.configform.FORGET_FINGERPRINT"));
         btnForgetFingerprint.setEnabled(false);
 
         btnForgetFingerprint.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent arg0)
             {
-                OtrActivator.scOtrKeyManager
-                    .unverify(OtrContactManager.getOtrContact(
+                OmemoActivator.scOmemoKeyManager
+                    .unverify(OmemoContactManager.getOtrContact(
                         getSelectedContact(), null), getSelectedFingerprint());
                 openContact(getSelectedContact(), getSelectedFingerprint());
                 contactsTable.updateUI();
@@ -188,7 +185,7 @@ public class KnownFingerprintsPanel
         else
         {
             boolean verified
-                = OtrActivator.scOtrKeyManager
+                = OmemoActivator.scOmemoKeyManager
                     .isVerified(contact, fingerprint);
 
             btnForgetFingerprint.setEnabled(verified);

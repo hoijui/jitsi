@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -34,7 +34,7 @@ import net.java.sip.communicator.service.protocol.*;
  * @author George Politis
  * @author Lubomir Marinov
  */
-public class OtrMetaContactMenu
+public class OmemoMetaContactMenu
     extends AbstractPluginComponent
     implements ActionListener,
                PopupMenuListener
@@ -42,13 +42,13 @@ public class OtrMetaContactMenu
 
     /**
      * The last known <tt>MetaContact</tt> to be currently selected and to be
-     * depicted by this instance and the <tt>OtrContactMenu</tt>s it contains.
+     * depicted by this instance and the <tt>OmemoContactMenu</tt>s it contains.
      */
     private MetaContact currentContact;
 
     /**
      * The indicator which determines whether the <tt>JMenu</tt> of this
-     * <tt>OtrMetaContactMenu</tt> is displayed in the Mac OS X screen menu bar
+     * <tt>OmemoMetaContactMenu</tt> is displayed in the Mac OS X screen menu bar
      * and thus should work around the known problem of PopupMenuListener not
      * being invoked.
      */
@@ -65,41 +65,41 @@ public class OtrMetaContactMenu
      */
     private JMenuItem whatsThis;
 
-    public OtrMetaContactMenu(Container container,
+    public OmemoMetaContactMenu(Container container,
                               PluginComponentFactory parentFactory)
     {
         super(container, parentFactory);
 
         inMacOSXScreenMenuBar =
             Container.CONTAINER_CHAT_MENU_BAR.equals(container)
-                && OtrActivator.uiService.useMacOSXScreenMenuBar();
+                && OmemoActivator.uiService.useMacOSXScreenMenuBar();
     }
 
     /*
-     * Handles the invocation of the whatsThis menu item,
-     * i.e. launches help on the subject of off-the-record messaging.
+     * Implements ActionListener#actionPerformed(ActionEvent). Handles the
+     * invocation of the whatsThis menu item i.e. launches help on the subject
+     * of off-the-record messaging.
      */
-    @Override
     public void actionPerformed(ActionEvent e)
     {
-        OtrActivator.scOtrEngine.launchHelp();
+        OmemoActivator.scOmemoEngine.launchHelp();
     }
 
     /**
-     * Creates an {@link OtrContactMenu} for each {@link Contact} contained in
+     * Creates an {@link OmemoContactMenu} for each {@link Contact} contained in
      * the <tt>metaContact</tt>.
      *
      * @param metaContact The {@link MetaContact} this
-     *            {@link OtrMetaContactMenu} refers to.
+     *            {@link OmemoMetaContactMenu} refers to.
      */
-    private void createOtrContactMenus(MetaContact metaContact)
+    private void createOmemoContactMenus(MetaContact metaContact)
     {
         JMenu menu = getMenu();
 
-        // Remove any existing OtrContactMenu items.
+        // Remove any existing OmemoContactMenu items.
         menu.removeAll();
 
-        // Create the new OtrContactMenu items.
+        // Create the new OmemoContactMenu items.
         if (metaContact != null)
         {
             Iterator<Contact> contacts = metaContact.getContacts();
@@ -114,16 +114,16 @@ public class OtrMetaContactMenu
                 {
                     for (ContactResource resource : resources)
                     {
-                        new OtrContactMenu(
-                            OtrContactManager.getOtrContact(contact, resource),
+                        new OmemoContactMenu(
+                            OmemoContactManager.getOtrContact(contact, resource),
                             inMacOSXScreenMenuBar,
                             menu,
                             true);
                     }
                 }
                 else
-                    new OtrContactMenu(
-                        OtrContactManager.getOtrContact(contact, null),
+                    new OmemoContactMenu(
+                        OmemoContactManager.getOtrContact(contact, null),
                         inMacOSXScreenMenuBar,
                         menu,
                         false);
@@ -140,8 +140,8 @@ public class OtrMetaContactMenu
                     {
                         for (ContactResource resource : resources)
                         {
-                            new OtrContactMenu(
-                                OtrContactManager.getOtrContact(
+                            new OmemoContactMenu(
+                                OmemoContactManager.getOtrContact(
                                     contact, resource),
                                 inMacOSXScreenMenuBar,
                                 menu,
@@ -149,8 +149,8 @@ public class OtrMetaContactMenu
                         }
                     }
                     else
-                        new OtrContactMenu(
-                            OtrContactManager.getOtrContact(contact, null),
+                        new OmemoContactMenu(
+                            OmemoContactManager.getOtrContact(contact, null),
                             inMacOSXScreenMenuBar,
                             menu,
                             true);
@@ -159,10 +159,9 @@ public class OtrMetaContactMenu
     }
 
     /*
-     * Returns the JMenu which is the component of this plug-in,
-     * creating it, if it does not yet exist.
+     * Implements PluginComponent#getComponent(). Returns the JMenu which is the
+     * component of this plug-in creating it first if it doesn't exist.
      */
-    @Override
     public Component getComponent()
     {
         return getMenu();
@@ -185,8 +184,8 @@ public class OtrMetaContactMenu
                 .equals(getContainer()))
             {
                 Icon icon =
-                    OtrActivator.resourceService
-                        .getImage("plugin.otr.MENU_ITEM_ICON_16x16");
+                    OmemoActivator.resourceService
+                        .getImage("plugin.omemo.MENU_ITEM_ICON_16x16");
 
                 if (icon != null)
                     menu.setIcon(icon);
@@ -198,29 +197,38 @@ public class OtrMetaContactMenu
         return menu;
     }
 
-    @Override
+    /*
+     * Implements PluginComponent#getName().
+     */
     public String getName()
     {
-        return OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.TITLE");
+        return OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.TITLE");
     }
 
-    @Override
+    /*
+     * Implements PopupMenuListener#popupMenuCanceled(PopupMenuEvent).
+     */
     public void popupMenuCanceled(PopupMenuEvent e)
     {
-        createOtrContactMenus(null);
+        createOmemoContactMenus(null);
     }
 
-    @Override
+    /*
+     * Implements PopupMenuListener#popupMenuWillBecomeInvisible(
+     * PopupMenuEvent).
+     */
     public void popupMenuWillBecomeInvisible(PopupMenuEvent e)
     {
         popupMenuCanceled(e);
     }
 
-    @Override
+    /*
+     * Implements PopupMenuListener#popupMenuWillBecomeVisible(PopupMenuEvent).
+     */
     public void popupMenuWillBecomeVisible(PopupMenuEvent e)
     {
-        createOtrContactMenus(currentContact);
+        createOmemoContactMenus(currentContact);
 
         JMenu menu = getMenu();
 
@@ -228,15 +236,18 @@ public class OtrMetaContactMenu
 
         whatsThis = new JMenuItem();
         whatsThis.setIcon(
-                OtrActivator.resourceService.getImage(
-                        "plugin.otr.HELP_ICON_15x15"));
+                OmemoActivator.resourceService.getImage(
+                        "plugin.omemo.HELP_ICON_15x15"));
         whatsThis.setText(
-                OtrActivator.resourceService.getI18NString(
-                        "plugin.otr.menu.WHATS_THIS"));
+                OmemoActivator.resourceService.getI18NString(
+                        "plugin.omemo.menu.WHATS_THIS"));
         whatsThis.addActionListener(this);
         menu.add(whatsThis);
     }
 
+    /*
+     * Implements PluginComponent#setCurrentContact(MetaContact).
+     */
     @Override
     public void setCurrentContact(MetaContact metaContact)
     {
@@ -247,7 +258,7 @@ public class OtrMetaContactMenu
             if (inMacOSXScreenMenuBar)
                 popupMenuWillBecomeVisible(null);
             else if ((menu != null) && menu.isPopupMenuVisible())
-                createOtrContactMenus(currentContact);
+                createOmemoContactMenus(currentContact);
         }
     }
 }

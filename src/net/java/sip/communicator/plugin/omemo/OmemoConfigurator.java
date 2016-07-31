@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ import org.jitsi.service.configuration.*;
  *
  * @author George Politis
  */
-public class OtrConfigurator
+public class OmemoConfigurator
 {
     /**
      * Gets an XML tag friendly {@link String} from a {@link String}.
@@ -70,7 +70,7 @@ public class OtrConfigurator
     private String getID(String id)
     {
         return
-            "net.java.sip.communicator.plugin.otr." + getXmlFriendlyString(id);
+            "net.java.sip.communicator.plugin.omemo." + getXmlFriendlyString(id);
     }
 
     /**
@@ -84,7 +84,7 @@ public class OtrConfigurator
      */
     public byte[] getPropertyBytes(String id)
     {
-        String value = OtrActivator.configService.getString(getID(id));
+        String value = OmemoActivator.configService.getString(getID(id));
 
         return (value == null) ? null : Base64.decode(value.getBytes());
     }
@@ -102,7 +102,7 @@ public class OtrConfigurator
     public boolean getPropertyBoolean(String id, boolean defaultValue)
     {
         return
-            OtrActivator.configService.getBoolean(getID(id), defaultValue);
+            OmemoActivator.configService.getBoolean(getID(id), defaultValue);
     }
 
     /**
@@ -117,7 +117,7 @@ public class OtrConfigurator
     {
         String valueToStore = new String(Base64.encode(value));
 
-        OtrActivator.configService.setProperty(getID(id), valueToStore);
+        OmemoActivator.configService.setProperty(getID(id), valueToStore);
     }
 
     /**
@@ -129,7 +129,7 @@ public class OtrConfigurator
      */
     public void setProperty(String id, Object value)
     {
-        OtrActivator.configService.setProperty(getID(id), value);
+        OmemoActivator.configService.setProperty(getID(id), value);
     }
 
     /**
@@ -140,7 +140,7 @@ public class OtrConfigurator
      */
     public void removeProperty(String id)
     {
-        OtrActivator.configService.removeProperty(getID(id));
+        OmemoActivator.configService.removeProperty(getID(id));
     }
 
     /**
@@ -153,7 +153,7 @@ public class OtrConfigurator
      */
     public int getPropertyInt(String id, int defaultValue)
     {
-        return OtrActivator.configService.getInt(getID(id), defaultValue);
+        return OmemoActivator.configService.getInt(getID(id), defaultValue);
     }
 
     /**
@@ -165,7 +165,7 @@ public class OtrConfigurator
      */
     public void appendProperty(String id, Object value)
     {
-        Object oldValue = OtrActivator.configService.getProperty(getID(id));
+        Object oldValue = OmemoActivator.configService.getProperty(getID(id));
 
         String newValue =
             oldValue == null ? value.toString() : oldValue + "," + value;
@@ -176,9 +176,9 @@ public class OtrConfigurator
     public List<String> getAppendedProperties(String id)
     {
         String listProperties =
-           (String) OtrActivator.configService.getProperty(getID(id));
+           (String) OmemoActivator.configService.getProperty(getID(id));
 
-        if (listProperties == null) return new ArrayList<>();
+        if (listProperties == null) return new ArrayList<String>();
 
         return Arrays.asList(listProperties.split(","));
     }

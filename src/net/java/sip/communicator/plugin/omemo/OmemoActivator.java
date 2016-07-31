@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.util.*;
 
-import net.java.sip.communicator.plugin.otr.authdialog.*;
+import net.java.sip.communicator.plugin.omemo.authdialog.*;
 import net.java.sip.communicator.service.contactlist.*;
 import net.java.sip.communicator.service.gui.*;
 import net.java.sip.communicator.service.msghistory.*;
@@ -38,68 +38,68 @@ import org.osgi.framework.*;
  * @author George Politis
  * @author Pawel Domas
  */
-public class OtrActivator
+public class OmemoActivator
     extends AbstractServiceDependentActivator
     implements ServiceListener
 {
 
     /**
-     * The {@link BundleContext} of the {@link OtrActivator}.
+     * The {@link BundleContext} of the {@link OmemoActivator}.
      */
     public static BundleContext bundleContext;
 
     /**
-     * The {@link ConfigurationService} of the {@link OtrActivator}. Can also be
-     * obtained from the {@link OtrActivator#bundleContext} on demand, but we
+     * The {@link ConfigurationService} of the {@link OmemoActivator}. Can also be
+     * obtained from the {@link OmemoActivator#bundleContext} on demand, but we
      * add it here for convenience.
      */
     public static ConfigurationService configService;
 
     /**
-     * The <tt>Logger</tt> used by the <tt>OtrActivator</tt> class and its
+     * The <tt>Logger</tt> used by the <tt>OmemoActivator</tt> class and its
      * instances for logging output.
      */
-    private static final Logger logger = Logger.getLogger(OtrActivator.class);
+    private static final Logger logger = Logger.getLogger(OmemoActivator.class);
 
     /**
      * Indicates if the security/chat config form should be disabled, i.e.
      * not visible to the user.
      */
     private static final String OTR_CHAT_CONFIG_DISABLED_PROP
-        = "net.java.sip.communicator.plugin.otr.otrchatconfig.DISABLED";
+        = "net.java.sip.communicator.plugin.omemo.otrchatconfig.DISABLED";
 
     /**
      * A property used in configuration to disable the OTR plugin.
      */
     public static final String OTR_DISABLED_PROP =
-        "net.java.sip.communicator.plugin.otr.DISABLED";
+        "net.java.sip.communicator.plugin.omemo.DISABLED";
 
     /**
      * A property specifying whether private messaging should be made mandatory.
      */
     public static final String OTR_MANDATORY_PROP =
-        "net.java.sip.communicator.plugin.otr.PRIVATE_MESSAGING_MANDATORY";
+        "net.java.sip.communicator.plugin.omemo.PRIVATE_MESSAGING_MANDATORY";
 
     /**
-     * The {@link ResourceManagementService} of the {@link OtrActivator}. Can
-     * also be obtained from the {@link OtrActivator#bundleContext} on demand,
+     * The {@link ResourceManagementService} of the {@link OmemoActivator}. Can
+     * also be obtained from the {@link OmemoActivator#bundleContext} on demand,
      * but we add it here for convenience.
      */
     public static ResourceManagementService resourceService;
 
     /**
-     * The {@link ScOtrEngine} of the {@link OtrActivator}.
+     * The {@link ScOmemoEngine} of the {@link OmemoActivator}.
      */
-    public static ScOtrEngineImpl scOtrEngine;
+    public static ScOmemoEngineImpl scOmemoEngine;
 
     /**
-     * The {@link ScOtrKeyManager} of the {@link OtrActivator}.
+     * The {@link ScOmemoKeyManager} of the {@link OmemoActivator}.
      */
-    public static ScOtrKeyManager scOtrKeyManager = new ScOtrKeyManagerImpl();
+    public static ScOmemoKeyManager scOmemoKeyManager = new ScOmemoKeyManagerImpl();
 
     /**
-     * The {@link UIService} of the {@link OtrActivator}. Can also be obtained
-     * from the {@link OtrActivator#bundleContext} on demand, but we add it here
+     * The {@link UIService} of the {@link OmemoActivator}. Can also be obtained
+     * from the {@link OmemoActivator#bundleContext} on demand, but we add it here
      * for convenience.
      */
     public static UIService uiService;
@@ -115,9 +115,9 @@ public class OtrActivator
     private static MessageHistoryService messageHistoryService;
 
     /**
-     * The {@link OtrContactManager} of the {@link OtrActivator}.
+     * The {@link OmemoContactManager} of the {@link OmemoActivator}.
      */
-    private static OtrContactManager otrContactManager;
+    private static OmemoContactManager otrContactManager;
 
     /**
      * Gets an {@link AccountID} by its UID.
@@ -131,7 +131,7 @@ public class OtrActivator
             return null;
 
         Map<Object, ProtocolProviderFactory> providerFactoriesMap =
-            OtrActivator.getProtocolProviderFactories();
+            OmemoActivator.getProtocolProviderFactories();
 
         if (providerFactoriesMap == null)
             return null;
@@ -157,12 +157,12 @@ public class OtrActivator
     public static List<AccountID> getAllAccountIDs()
     {
         Map<Object, ProtocolProviderFactory> providerFactoriesMap =
-            OtrActivator.getProtocolProviderFactories();
+            OmemoActivator.getProtocolProviderFactories();
 
         if (providerFactoriesMap == null)
             return null;
 
-        List<AccountID> accountIDs = new Vector<>();
+        List<AccountID> accountIDs = new Vector<AccountID>();
 
         for (ProtocolProviderFactory providerFactory
                 : providerFactoriesMap.values())
@@ -182,7 +182,7 @@ public class OtrActivator
                     bundleContext,
                     ProtocolProviderFactory.class);
         Map<Object, ProtocolProviderFactory> providerFactoriesMap
-            = new Hashtable<>();
+            = new Hashtable<Object, ProtocolProviderFactory>();
 
         if (!serRefs.isEmpty())
         {
@@ -199,7 +199,7 @@ public class OtrActivator
         return providerFactoriesMap;
     }
 
-    private OtrTransformLayer otrTransformLayer;
+    private OmemoTransformLayer otrTransformLayer;
 
     /**
      * The dependent class. We are waiting for the ui service.
@@ -218,7 +218,7 @@ public class OtrActivator
                     OperationSetInstantMessageTransform.class);
 
         if (opSetMessageTransform != null)
-            opSetMessageTransform.addTransformLayer(this.otrTransformLayer);
+            opSetMessageTransform.addTransformLayer(this.omemoTransformLayer);
         else if (logger.isTraceEnabled())
             logger.trace("Service did not have a transform op. set.");
     }
@@ -231,9 +231,12 @@ public class OtrActivator
                     OperationSetInstantMessageTransform.class);
 
         if (opSetMessageTransform != null)
-            opSetMessageTransform.removeTransformLayer(this.otrTransformLayer);
+            opSetMessageTransform.removeTransformLayer(this.omemoTransformLayer);
     }
 
+    /*
+     * Implements ServiceListener#serviceChanged(ServiceEvent).
+     */
     @Override
     public void serviceChanged(ServiceEvent serviceEvent)
     {
@@ -278,6 +281,9 @@ public class OtrActivator
         bundleContext = context;
     }
 
+    /*
+     * Implements AbstractServiceDependentActivator#start(UIService).
+     */
     @Override
     public void start(Object dependentService)
     {
@@ -303,13 +309,13 @@ public class OtrActivator
         uiService = (UIService) dependentService;
 
         // Init static variables, don't proceed without them.
-        scOtrEngine = new ScOtrEngineImpl();
-        otrContactManager = new OtrContactManager();
-        otrTransformLayer = new OtrTransformLayer();
+        scOmemoEngine = new ScOmemoEngineImpl();
+        otrContactManager = new OmemoContactManager();
+        otrTransformLayer = new OmemoTransformLayer();
 
         // Register Transformation Layer
         bundleContext.addServiceListener(this);
-        bundleContext.addServiceListener(scOtrEngine);
+        bundleContext.addServiceListener(scOmemoEngine);
         bundleContext.addServiceListener(otrContactManager);
 
         Collection<ServiceReference<ProtocolProviderService>> protocolProviderRefs
@@ -337,7 +343,8 @@ public class OtrActivator
 
         if(!OSUtils.IS_ANDROID)
         {
-            Hashtable<String, String> containerFilter = new Hashtable<>();
+            Hashtable<String, String> containerFilter
+                = new Hashtable<String, String>();
 
             // Register the right-click menu item.
             containerFilter.put(Container.CONTAINER_ID,
@@ -345,7 +352,7 @@ public class OtrActivator
 
             bundleContext.registerService(
                 PluginComponentFactory.class.getName(),
-                new OtrPluginComponentFactory(
+                new OmemoPluginComponentFactory(
                         Container.CONTAINER_CONTACT_RIGHT_BUTTON_MENU),
                 containerFilter);
 
@@ -355,7 +362,7 @@ public class OtrActivator
 
             bundleContext.registerService(
                 PluginComponentFactory.class.getName(),
-                new OtrPluginComponentFactory(
+                new OmemoPluginComponentFactory(
                         Container.CONTAINER_CHAT_MENU_BAR),
                 containerFilter);
 
@@ -365,14 +372,14 @@ public class OtrActivator
 
             bundleContext.registerService(
                 PluginComponentFactory.class.getName(),
-                new OtrPluginComponentFactory(
+                new OmemoPluginComponentFactory(
                         Container.CONTAINER_CHAT_TOOL_BAR),
                 containerFilter);
 
             // Register Swing OTR action handler
             bundleContext.registerService(
-                OtrActionHandler.class.getName(),
-                new SwingOtrActionHandler(), null);
+                OmemoActivator.class.getName(),
+                new SwingOmemoActionHandler(), null);
 
             containerFilter.put(Container.CONTAINER_ID,
                                 Container.CONTAINER_CHAT_WRITE_PANEL.getID());
@@ -396,22 +403,26 @@ public class OtrActivator
         if (!configService.getBoolean(OTR_CHAT_CONFIG_DISABLED_PROP, false)
                 && !OSUtils.IS_ANDROID)
         {
-            Dictionary<String, String> properties = new Hashtable<>();
+            Dictionary<String, String> properties
+                = new Hashtable<String, String>();
 
             properties.put( ConfigurationForm.FORM_TYPE,
                             ConfigurationForm.SECURITY_TYPE);
             // Register the configuration form.
             bundleContext.registerService(ConfigurationForm.class.getName(),
                     new LazyConfigurationForm(
-                            "net.java.sip.communicator.plugin.otr.authdialog."
-                                + "OtrConfigurationPanel",
+                            "net.java.sip.communicator.plugin.omemo.authdialog."
+                                + "OmemoConfigurationPanel",
                             getClass().getClassLoader(),
-                            "plugin.otr.configform.ICON",
+                            "plugin.omemo.configform.ICON",
                             "service.gui.CHAT", 1),
                             properties);
         }
     }
 
+    /*
+     * Implements BundleActivator#stop(BundleContext).
+     */
     @Override
     public void stop(BundleContext bc) throws Exception
     {
@@ -419,8 +430,8 @@ public class OtrActivator
         // start listening for newly register or removed protocol providers
         bundleContext.removeServiceListener(this);
 
-        if(scOtrEngine != null)
-            bundleContext.removeServiceListener(scOtrEngine);
+        if(scOmemoEngine != null)
+            bundleContext.removeServiceListener(scOmemoEngine);
 
         if(otrContactManager != null)
             bundleContext.removeServiceListener(otrContactManager);
@@ -483,10 +494,10 @@ public class OtrActivator
      * The factory that will be registered in OSGi and will create OTR menu
      * instances.
      */
-    private static class OtrPluginComponentFactory
+    private static class OmemoPluginComponentFactory
         extends PluginComponentFactory
     {
-        OtrPluginComponentFactory(Container c)
+        OmemoPluginComponentFactory(Container c)
         {
             super(c);
         }
@@ -496,9 +507,9 @@ public class OtrActivator
         {
             Container container = getContainer();
             if(container.equals(Container.CONTAINER_CHAT_TOOL_BAR))
-                return new OtrMetaContactButton(container, this);
+                return new OmemoMetaContactButton(container, this);
             else
-                return new OtrMetaContactMenu(container, this);
+                return new OmemoMetaContactMenu(container, this);
         }
     }
 }

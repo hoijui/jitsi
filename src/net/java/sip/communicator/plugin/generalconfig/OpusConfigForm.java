@@ -176,8 +176,10 @@ public class OpusConfigForm
                         BITRATE_DEFAULT))
                 .toString());
         bitrateField.addFocusListener(new FocusListener() {
+            @Override
             public void focusGained(FocusEvent focusEvent) {}
 
+            @Override
             public void focusLost(FocusEvent focusEvent) {
                 configurationService.setProperty(
                         Constants.PROP_OPUS_BITRATE, bitrateField.getText());
@@ -211,9 +213,11 @@ public class OpusConfigForm
                         Constants.PROP_OPUS_MIN_EXPECTED_PACKET_LOSS,
                         ((Integer)MIN_EXPECTED_PL_DEFAULT).toString()));
         minExpectedPLField.addFocusListener(new FocusListener() {
+            @Override
             public void focusGained(FocusEvent focusEvent) {
             }
 
+            @Override
             public void focusLost(FocusEvent focusEvent) {
                 configurationService.setProperty(
                         Constants.PROP_OPUS_MIN_EXPECTED_PACKET_LOSS,
@@ -270,10 +274,11 @@ public class OpusConfigForm
     }
 
     /**
-     * Action listener for the checkboxes, buttons and comboboxes. Updates
+     * Action listener for the check-boxes, buttons and combo-boxes. Updates
      * the configuration service with the appropriate new value.
      * @param actionEvent
      */
+    @Override
     public void actionPerformed(ActionEvent actionEvent)
     {
         Object source = actionEvent.getSource();

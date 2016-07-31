@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -24,9 +24,9 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import net.java.otr4j.*;
+import net.java.omemo4j.*;
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
+import net.java.sip.communicator.plugin.omemo.*;
 import net.java.sip.communicator.service.protocol.*;
 
 /**
@@ -35,13 +35,13 @@ import net.java.sip.communicator.service.protocol.*;
  * @author George Politis
  */
 @SuppressWarnings("serial")
-public class OtrConfigurationPanel
+public class OmemoConfigurationPanel
     extends TransparentPanel
 {
     /**
-     * Creates the <tt>OtrConfigurationPanel</tt>
+     * Creates the <tt>OmemoConfigurationPanel</tt>
      */
-    public OtrConfigurationPanel()
+    public OmemoConfigurationPanel()
     {
         this.initComponents();
     }
@@ -101,7 +101,7 @@ public class OtrConfigurationPanel
 
             public AccountsComboBox()
             {
-                List<AccountID> accountIDs = OtrActivator.getAllAccountIDs();
+                List<AccountID> accountIDs = OmemoActivator.getAllAccountIDs();
 
                 if (accountIDs == null)
                     return;
@@ -139,10 +139,10 @@ public class OtrConfigurationPanel
                 lblFingerprint.setEnabled(false);
                 btnGenerate.setEnabled(false);
 
-                lblFingerprint.setText(OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.NO_KEY_PRESENT"));
-                btnGenerate.setText(OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.GENERATE"));
+                lblFingerprint.setText(OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.NO_KEY_PRESENT"));
+                btnGenerate.setText(OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.GENERATE"));
             }
             else
             {
@@ -150,21 +150,21 @@ public class OtrConfigurationPanel
                 btnGenerate.setEnabled(true);
 
                 String fingerprint =
-                    OtrActivator.scOtrKeyManager
+                    OmemoActivator.scOmemoKeyManager
                         .getLocalFingerprint(account);
 
                 if (fingerprint == null || fingerprint.length() < 1)
                 {
-                    lblFingerprint.setText(OtrActivator.resourceService
-                        .getI18NString("plugin.otr.configform.NO_KEY_PRESENT"));
-                    btnGenerate.setText(OtrActivator.resourceService
-                        .getI18NString("plugin.otr.configform.GENERATE"));
+                    lblFingerprint.setText(OmemoActivator.resourceService
+                        .getI18NString("plugin.omemo.configform.NO_KEY_PRESENT"));
+                    btnGenerate.setText(OmemoActivator.resourceService
+                        .getI18NString("plugin.omemo.configform.GENERATE"));
                 }
                 else
                 {
                     lblFingerprint.setText(fingerprint);
-                    btnGenerate.setText(OtrActivator.resourceService
-                        .getI18NString("plugin.otr.configform.REGENERATE"));
+                    btnGenerate.setText(OmemoActivator.resourceService
+                        .getI18NString("plugin.omemo.configform.REGENERATE"));
                 }
             }
         }
@@ -176,24 +176,23 @@ public class OtrConfigurationPanel
         {
             this.setBorder(BorderFactory.createTitledBorder(BorderFactory
                 .createEtchedBorder(EtchedBorder.LOWERED),
-                OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.MY_PRIVATE_KEYS")));
+                OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.MY_PRIVATE_KEYS")));
 
             JPanel labelsPanel = new TransparentPanel(new GridLayout(0, 1));
 
-            labelsPanel.add(new JLabel(OtrActivator.resourceService
+            labelsPanel.add(new JLabel(OmemoActivator.resourceService
                 .getI18NString("service.gui.ACCOUNT") + ": "));
 
             labelsPanel.add(new JLabel(
-                OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.FINGERPRINT") + ": "));
+                OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.FINGERPRINT") + ": "));
 
             JPanel valuesPanel = new TransparentPanel(new GridLayout(0, 1));
 
             cbAccounts = new AccountsComboBox();
             cbAccounts.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
                     openAccount(((AccountsComboBox) e.getSource())
@@ -214,13 +213,12 @@ public class OtrConfigurationPanel
             buttonPanel.add(btnGenerate);
             btnGenerate.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
                     AccountID account = cbAccounts.getSelectedAccountID();
                     if (account == null)
                         return;
-                    OtrActivator.scOtrKeyManager
+                    OmemoActivator.scOmemoKeyManager
                         .generateKeyPair(account);
                     openAccount(account);
                 }
@@ -237,96 +235,94 @@ public class OtrConfigurationPanel
      *
      * @author George Politis
      */
-    private static class DefaultOtrPolicyPanel
+    private static class DefaultOmemoPolicyPanel
         extends TransparentPanel
     {
         // TODO We should listen for configuration value changes.
-        public DefaultOtrPolicyPanel()
+        public DefaultOmemoPolicyPanel()
         {
             this.initComponents();
             this.loadPolicy();
         }
 
         /**
-         * Sets up the {@link DefaultOtrPolicyPanel} components so that they
+         * Sets up the {@link DefaultOmemoPolicyPanel} components so that they
          * reflect the global OTR policy.
          *
          */
         public void loadPolicy()
         {
-            OtrPolicy otrPolicy
-                = OtrActivator.scOtrEngine.getGlobalPolicy();
+            OmemoPolicy otrPolicy
+                = OmemoActivator.scOmemoEngine.getGlobalPolicy();
 
             boolean otrEnabled = otrPolicy.getEnableManual();
             cbEnable.setSelected(otrEnabled);
             cbAutoInitiate.setEnabled(otrEnabled);
-            cbRequireOtr.setEnabled(otrEnabled);
+            cbRequireOmemo.setEnabled(otrEnabled);
 
             boolean isAutoInit = otrPolicy.getEnableAlways();
 
             cbAutoInitiate.setSelected(isAutoInit);
 
             String otrMandatoryPropValue
-                = OtrActivator.configService.getString(
-                    OtrActivator.OTR_MANDATORY_PROP);
-            String defaultOtrPropValue
-                = OtrActivator.resourceService.getSettingsString(
-                    OtrActivator.OTR_MANDATORY_PROP);
+                = OmemoActivator.configService.getString(
+                    OmemoActivator.OTR_MANDATORY_PROP);
+            String defaultOmemoPropValue
+                = OmemoActivator.resourceService.getSettingsString(
+                    OmemoActivator.OTR_MANDATORY_PROP);
 
             boolean isMandatory = otrPolicy.getRequireEncryption();
             if (otrMandatoryPropValue != null)
                 isMandatory = Boolean.parseBoolean(otrMandatoryPropValue);
-            else if (!isMandatory && defaultOtrPropValue != null)
-                isMandatory = Boolean.parseBoolean(defaultOtrPropValue);
+            else if (!isMandatory && defaultOmemoPropValue != null)
+                isMandatory = Boolean.parseBoolean(defaultOmemoPropValue);
 
-            cbRequireOtr.setSelected(isMandatory);
+            cbRequireOmemo.setSelected(isMandatory);
         }
 
         private SIPCommCheckBox cbEnable;
 
         private SIPCommCheckBox cbAutoInitiate;
 
-        private SIPCommCheckBox cbRequireOtr;
+        private SIPCommCheckBox cbRequireOmemo;
 
         /**
-         * Initializes the {@link DefaultOtrPolicyPanel} components.
+         * Initializes the {@link DefaultOmemoPolicyPanel} components.
          */
         private void initComponents()
         {
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
             cbEnable =
-                new SIPCommCheckBox(OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.CB_ENABLE"));
+                new SIPCommCheckBox(OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.CB_ENABLE"));
             cbEnable.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    OtrPolicy otrPolicy
-                        = OtrActivator.scOtrEngine
+                    OmemoPolicy otrPolicy
+                        = OmemoActivator.scOmemoEngine
                             .getGlobalPolicy();
 
                     otrPolicy.setEnableManual(((JCheckBox) e.getSource())
                         .isSelected());
 
-                    OtrActivator.scOtrEngine.setGlobalPolicy(otrPolicy);
+                    OmemoActivator.scOmemoEngine.setGlobalPolicy(otrPolicy);
 
-                    DefaultOtrPolicyPanel.this.loadPolicy();
+                    DefaultOmemoPolicyPanel.this.loadPolicy();
                 }
             });
             this.add(cbEnable);
 
             cbAutoInitiate =
-                new SIPCommCheckBox(OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.CB_AUTO"));
+                new SIPCommCheckBox(OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.CB_AUTO"));
             cbAutoInitiate.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    OtrPolicy otrPolicy =
-                        OtrActivator.scOtrEngine
+                    OmemoPolicy otrPolicy =
+                        OmemoActivator.scOmemoEngine
                             .getGlobalPolicy();
 
                     boolean isAutoInit
@@ -334,46 +330,45 @@ public class OtrConfigurationPanel
 
                     otrPolicy.setSendWhitespaceTag(isAutoInit);
 
-                    OtrActivator.scOtrEngine.setGlobalPolicy(otrPolicy);
+                    OmemoActivator.scOmemoEngine.setGlobalPolicy(otrPolicy);
 
-                    DefaultOtrPolicyPanel.this.loadPolicy();
+                    DefaultOmemoPolicyPanel.this.loadPolicy();
                 }
             });
 
             this.add(cbAutoInitiate);
 
-            cbRequireOtr =
-                new SIPCommCheckBox(OtrActivator.resourceService
-                    .getI18NString("plugin.otr.configform.CB_REQUIRE"));
-            cbRequireOtr.addActionListener(new ActionListener()
+            cbRequireOmemo =
+                new SIPCommCheckBox(OmemoActivator.resourceService
+                    .getI18NString("plugin.omemo.configform.CB_REQUIRE"));
+            cbRequireOmemo.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
-                    OtrPolicy otrPolicy =
-                        OtrActivator.scOtrEngine.getGlobalPolicy();
+                    OmemoPolicy otrPolicy =
+                        OmemoActivator.scOmemoEngine.getGlobalPolicy();
 
                     boolean isRequired
                         = ((JCheckBox) e.getSource()).isSelected();
 
                     otrPolicy.setRequireEncryption(isRequired);
 
-                    OtrActivator.configService.setProperty(
-                        OtrActivator.OTR_MANDATORY_PROP,
+                    OmemoActivator.configService.setProperty(
+                        OmemoActivator.OTR_MANDATORY_PROP,
                         Boolean.toString(isRequired));
 
-                    OtrActivator.scOtrEngine.setGlobalPolicy(otrPolicy);
+                    OmemoActivator.scOmemoEngine.setGlobalPolicy(otrPolicy);
 
-                    DefaultOtrPolicyPanel.this.loadPolicy();
+                    DefaultOmemoPolicyPanel.this.loadPolicy();
 
                 }
             });
-            this.add(cbRequireOtr);
+            this.add(cbRequireOmemo);
         }
     }
 
     /**
-     * Initializes all 3 panels of the {@link OtrConfigurationPanel}
+     * Initializes all 3 panels of the {@link OmemoConfigurationPanel}
      */
     private void initComponents()
     {
@@ -395,7 +390,7 @@ public class OtrConfigurationPanel
         c.gridy = 1;
         this.add(pnlFingerprints, c);
 
-        JPanel pnlPolicy = new DefaultOtrPolicyPanel();
+        JPanel pnlPolicy = new DefaultOmemoPolicyPanel();
         c.gridy = 2;
         this.add(pnlPolicy, c);
     }

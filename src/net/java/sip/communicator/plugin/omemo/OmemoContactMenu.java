@@ -15,16 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.awt.event.*;
 import java.security.*;
 
 import javax.swing.*;
 
-import net.java.otr4j.*;
+import net.java.omemo4j.*;
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.util.*;
 
@@ -36,12 +36,12 @@ import net.java.sip.communicator.util.*;
  * @author Lyubomir Marinov
  * @author Marin Dzhigarov
  */
-class OtrContactMenu
+class OmemoContactMenu
     implements ActionListener,
-               ScOtrEngineListener,
-               ScOtrKeyManagerListener
+               ScOmemoEngineListener,
+               ScOmemoKeyManagerListener
 {
-    private final Logger logger = Logger.getLogger(OtrContactMenu.class);
+    private final Logger logger = Logger.getLogger(OmemoContactMenu.class);
 
     private static final String ACTION_COMMAND_AUTHENTICATE_BUDDY =
         "AUTHENTICATE_BUDDY";
@@ -62,7 +62,7 @@ class OtrContactMenu
 
     private static final String ACTION_COMMAND_START_OTR = "START_OTR";
 
-    private final OtrContact contact;
+    private final OmemoContact contact;
 
     /**
      * The indicator which determines whether this <tt>JMenu</tt> is displayed
@@ -73,9 +73,9 @@ class OtrContactMenu
 
     /**
      * We keep this variable so we can determine if the policy has changed
-     * or not in {@link OtrContactMenu#setOtrPolicy(OtrPolicy)}.
+     * or not in {@link OmemoContactMenu#setOtrPolicy(OmemoPolicy)}.
      */
-    private OtrPolicy otrPolicy;
+    private OmemoPolicy otrPolicy;
 
     private ScSessionStatus sessionStatus;
 
@@ -84,14 +84,14 @@ class OtrContactMenu
     private final SIPCommMenu separateMenu;
 
     /**
-     * The OtrContactMenu constructor.
+     * The OmemoContactMenu constructor.
      *
-     * @param otrContact the OtrContact this menu refers to.
+     * @param otrContact the OmemoContact this menu refers to.
      * @param inMacOSXScreenMenuBar <tt>true</tt> if the new menu is to be
      * displayed in the Mac OS X screen menu bar; <tt>false</tt>, otherwise
      * @param menu the parent menu
      */
-    public OtrContactMenu(  OtrContact otrContact,
+    public OmemoContactMenu(  OmemoContact otrContact,
                             boolean inMacOSXScreenMenuBar,
                             JMenu menu,
                             boolean isSeparateMenu)
@@ -110,212 +110,221 @@ class OtrContactMenu
                 : null;
 
         /*
-         * XXX This OtrContactMenu instance cannot be added as a listener to
-         * scOtrEngine and scOtrKeyManager without being removed later on
+         * XXX This OmemoContactMenu instance cannot be added as a listener to
+         * scOmemoEngine and scOmemoKeyManager without being removed later on
          * because the latter live forever. Unfortunately, the dispose() method
-         * of this instance is never executed. OtrWeakListener will keep this
-         * instance as a listener of scOtrEngine and scOtrKeyManager for as long
+         * of this instance is never executed. OmemoWeakListener will keep this
+         * instance as a listener of scOmemoEngine and scOmemoKeyManager for as long
          * as this instance is necessary. And this instance will be strongly
          * referenced by the JMenuItems which depict it. So when the JMenuItems
-         * are gone, this instance will become obsolete and OtrWeakListener will
-         * remove it as a listener of scOtrEngine and scOtrKeyManager.
+         * are gone, this instance will become obsolete and OmemoWeakListener will
+         * remove it as a listener of scOmemoEngine and scOmemoKeyManager.
          */
-        new OtrWeakListener<>(
+        new OmemoWeakListener<OtrContactMenu>(
                 this,
-                OtrActivator.scOtrEngine, OtrActivator.scOtrKeyManager);
+                OmemoActivator.scOmemoEngine, OmemoActivator.scOtrKeyManager);
 
         setSessionStatus(
-            OtrActivator.scOtrEngine.getSessionStatus(this.contact));
-        setOtrPolicy(
-            OtrActivator.scOtrEngine.getContactPolicy(otrContact.contact));
+            OmemoActivator.scOmemoEngine.getSessionStatus(this.contact));
+        setOmemoPolicy(
+            OmemoActivator.scOmemoEngine.getContactPolicy(otrContact.contact));
 
         buildMenu();
     }
 
-    @Override
+    /*
+     * Implements ActionListener#actionPerformed(ActionEvent).
+     */
     public void actionPerformed(ActionEvent e)
     {
         String actionCommand = e.getActionCommand();
 
         if (ACTION_COMMAND_END_OTR.equals(actionCommand))
         {
-            OtrPolicy policy =
-                OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
+            OmemoPolicy policy =
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
             policy.setSendWhitespaceTag(false);
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, policy);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, policy);
 
             // End session.
-            OtrActivator.scOtrEngine.endSession(contact);
+            OmemoActivator.scOmemoEngine.endSession(contact);
         }
 
         else if (ACTION_COMMAND_START_OTR.equals(actionCommand))
         {
-            OtrPolicy policy =
-                OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
-            OtrPolicy globalPolicy =
-                OtrActivator.scOtrEngine.getGlobalPolicy();
+            OmemoPolicy policy =
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
+            OmemoPolicy globalPolicy =
+                OmemoActivator.scOmemoEngine.getGlobalPolicy();
             policy.setSendWhitespaceTag(globalPolicy.getSendWhitespaceTag());
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, policy);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, policy);
 
             // Start session.
-            OtrActivator.scOtrEngine.startSession(contact);
+            OmemoActivator.scOmemoEngine.startSession(contact);
         }
 
         else if (ACTION_COMMAND_REFRESH_OTR.equals(actionCommand))
             // Refresh session.
-            OtrActivator.scOtrEngine.refreshSession(contact);
+            OmemoActivator.scOmemoEngine.refreshSession(contact);
 
         else if (ACTION_COMMAND_AUTHENTICATE_BUDDY.equals(actionCommand))
             // Launch auth buddy dialog.
-            SwingOtrActionHandler.openAuthDialog(contact);
+            SwingOmemoActionHandler.openAuthDialog(contact);
 
         else if (ACTION_COMMAND_CB_ENABLE.equals(actionCommand))
         {
-            OtrPolicy policy =
-                OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
+            OmemoPolicy policy =
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
             boolean state = ((JCheckBoxMenuItem) e.getSource()).isSelected();
 
             policy.setEnableManual(state);
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, policy);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, policy);
         }
 
         else if (ACTION_COMMAND_CB_AUTO.equals(actionCommand))
         {
-            OtrPolicy policy =
-                OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
+            OmemoPolicy policy =
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
             boolean state = ((JCheckBoxMenuItem) e.getSource()).isSelected();
 
             policy.setSendWhitespaceTag(state);
 
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, policy);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, policy);
         }
 
         else if (ACTION_COMMAND_CB_AUTO_ALL.equals(actionCommand))
         {
-            OtrPolicy globalPolicy =
-                OtrActivator.scOtrEngine.getGlobalPolicy();
+            OmemoPolicy globalPolicy =
+                OmemoActivator.scOmemoEngine.getGlobalPolicy();
             boolean state = ((JCheckBoxMenuItem) e.getSource()).isSelected();
 
             globalPolicy.setSendWhitespaceTag(state);
 
-            OtrActivator.scOtrEngine.setGlobalPolicy(globalPolicy);
+            OmemoActivator.scOmemoEngine.setGlobalPolicy(globalPolicy);
         }
 
         else if (ACTION_COMMAND_CB_REQUIRE.equals(actionCommand))
         {
-            OtrPolicy policy =
-                OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
+            OmemoPolicy policy =
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
             boolean state = ((JCheckBoxMenuItem) e.getSource()).isSelected();
 
             policy.setRequireEncryption(state);
-            OtrActivator.configService.setProperty(
-                OtrActivator.OTR_MANDATORY_PROP,
+            OmemoActivator.configService.setProperty(
+                OmemoActivator.OTR_MANDATORY_PROP,
                 Boolean.toString(state));
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, policy);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, policy);
         }
         else if (ACTION_COMMAND_CB_RESET.equals(actionCommand))
-            OtrActivator.scOtrEngine.setContactPolicy(contact.contact, null);
+            OmemoActivator.scOmemoEngine.setContactPolicy(contact.contact, null);
     }
 
-    @Override
+    /*
+     * Implements ScOmemoEngineListener#contactPolicyChanged(Contact).
+     */
     public void contactPolicyChanged(Contact contact)
     {
         // Update the corresponding to the contact menu.
-        if (OtrContactMenu.this.contact != null &&
-            contact.equals(OtrContactMenu.this.contact.contact))
-            setOtrPolicy(OtrActivator.scOtrEngine.getContactPolicy(contact));
+        if (OmemoContactMenu.this.contact != null &&
+            contact.equals(OmemoContactMenu.this.contact.contact))
+            setOmemoPolicy(OmemoActivator.scOmemoEngine.getContactPolicy(contact));
     }
 
-    @Override
-    public void contactVerificationStatusChanged(OtrContact otrContact)
+    /*
+     * Implements ScOmemoKeyManagerListener#contactVerificationStatusChanged(
+     * Contact).
+     */
+    public void contactVerificationStatusChanged(OmemoContact otrContact)
     {
-        if (otrContact.equals(OtrContactMenu.this.contact))
+        if (otrContact.equals(OmemoContactMenu.this.contact))
             setSessionStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
     }
 
     /**
      * Disposes of this instance by making it available for garage collection
      * e.g. removes the listeners it has installed on global instances such as
-     * <tt>OtrActivator#scOtrEngine</tt> and
-     * <tt>OtrActivator#scOtrKeyManager</tt>.
+     * <tt>OmemoActivator#scOmemoEngine</tt> and
+     * <tt>OmemoActivator#scOmemoKeyManager</tt>.
      */
     void dispose()
     {
-        OtrActivator.scOtrEngine.removeListener(this);
-        OtrActivator.scOtrKeyManager.removeListener(this);
+        OmemoActivator.scOmemoEngine.removeListener(this);
+        OmemoActivator.scOmemoKeyManager.removeListener(this);
     }
 
-    @Override
+    /*
+     * Implements ScOmemoEngineListener#globalPolicyChanged().
+     */
     public void globalPolicyChanged()
     {
-        setOtrPolicy(OtrActivator.scOtrEngine.getContactPolicy(contact.contact));
+        setOmemoPolicy(OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact));
     }
 
     /**
-     * Rebuilds own menu items according to {@link OtrContactMenu#sessionStatus}
-     * and the {@link OtrPolicy} for {@link OtrContactMenu#contact}.
+     * Rebuilds own menuitems according to {@link OmemoContactMenu#sessionStatus}
+     * and the {@link OmemoPolicy} for {@link OmemoContactMenu#contact}.
      */
     private void buildMenu()
     {
         if(separateMenu != null)
             separateMenu.removeAll();
 
-        OtrPolicy policy =
-            OtrActivator.scOtrEngine.getContactPolicy(contact.contact);
+        OmemoPolicy policy =
+            OmemoActivator.scOmemoEngine.getContactPolicy(contact.contact);
 
-        JMenuItem endOtr = new JMenuItem();
-        endOtr.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.END_OTR"));
-        endOtr.setActionCommand(ACTION_COMMAND_END_OTR);
-        endOtr.addActionListener(this);
+        JMenuItem endOmemo = new JMenuItem();
+        endOmemo.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.END_OTR"));
+        endOmemo.setActionCommand(ACTION_COMMAND_END_OTR);
+        endOmemo.addActionListener(this);
 
-        JMenuItem startOtr = new JMenuItem();
-        startOtr.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.START_OTR"));
-        startOtr.setEnabled(policy.getEnableManual());
-        startOtr.setActionCommand(ACTION_COMMAND_START_OTR);
-        startOtr.addActionListener(this);
+        JMenuItem startOmemo = new JMenuItem();
+        startOmemo.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.START_OTR"));
+        startOmemo.setEnabled(policy.getEnableManual());
+        startOmemo.setActionCommand(ACTION_COMMAND_START_OTR);
+        startOmemo.addActionListener(this);
 
-        JMenuItem refreshOtr = new JMenuItem();
-        refreshOtr.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.REFRESH_OTR"));
-        refreshOtr.setEnabled(policy.getEnableManual());
-        refreshOtr.setActionCommand(ACTION_COMMAND_REFRESH_OTR);
-        refreshOtr.addActionListener(this);
+        JMenuItem refreshOmemo = new JMenuItem();
+        refreshOmemo.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.REFRESH_OTR"));
+        refreshOmemo.setEnabled(policy.getEnableManual());
+        refreshOmemo.setActionCommand(ACTION_COMMAND_REFRESH_OTR);
+        refreshOmemo.addActionListener(this);
 
         switch (this.sessionStatus)
         {
         case LOADING:
             if (separateMenu != null)
             {
-                separateMenu.add(endOtr);
-                separateMenu.add(refreshOtr);
+                separateMenu.add(endOmemo);
+                separateMenu.add(refreshOmemo);
             }
             else
             {
-                parentMenu.add(endOtr);
-                parentMenu.add(refreshOtr);
+                parentMenu.add(endOmemo);
+                parentMenu.add(refreshOmemo);
             }
             break;
 
         case ENCRYPTED:
             JMenuItem authBuddy = new JMenuItem();
-            authBuddy.setText(OtrActivator.resourceService
-                .getI18NString("plugin.otr.menu.AUTHENTICATE_BUDDY"));
+            authBuddy.setText(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.menu.AUTHENTICATE_BUDDY"));
             authBuddy.setActionCommand(ACTION_COMMAND_AUTHENTICATE_BUDDY);
             authBuddy.addActionListener(this);
 
             if (separateMenu != null)
             {
-                separateMenu.add(endOtr);
-                separateMenu.add(refreshOtr);
+                separateMenu.add(endOmemo);
+                separateMenu.add(refreshOmemo);
                 separateMenu.add(authBuddy);
             }
             else
             {
-                parentMenu.add(endOtr);
-                parentMenu.add(refreshOtr);
+                parentMenu.add(endOmemo);
+                parentMenu.add(refreshOmemo);
                 parentMenu.add(authBuddy);
             }
 
@@ -324,38 +333,38 @@ class OtrContactMenu
         case FINISHED:
             if (separateMenu != null)
             {
-                separateMenu.add(endOtr);
-                separateMenu.add(refreshOtr);
+                separateMenu.add(endOmemo);
+                separateMenu.add(refreshOmemo);
             }
             else
             {
-                parentMenu.add(endOtr);
-                parentMenu.add(refreshOtr);
+                parentMenu.add(endOmemo);
+                parentMenu.add(refreshOmemo);
             }
             break;
 
         case TIMED_OUT:
         case PLAINTEXT:
             if (separateMenu != null)
-                separateMenu.add(startOtr);
+                separateMenu.add(startOmemo);
             else
-                parentMenu.add(startOtr);
+                parentMenu.add(startOmemo);
 
             break;
         }
 
         JCheckBoxMenuItem cbEnable = new JCheckBoxMenuItem();
-        cbEnable.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.CB_ENABLE"));
+        cbEnable.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.CB_ENABLE"));
         cbEnable.setSelected(policy.getEnableManual());
         cbEnable.setActionCommand(ACTION_COMMAND_CB_ENABLE);
         cbEnable.addActionListener(this);
 
         JCheckBoxMenuItem cbAlways = new JCheckBoxMenuItem();
         cbAlways.setText(String.format(
-                OtrActivator.resourceService
+                OmemoActivator.resourceService
                     .getI18NString(
-                        "plugin.otr.menu.CB_AUTO",
+                        "plugin.omemo.menu.CB_AUTO",
                         new String[]
                             {contact.contact.getDisplayName()})));
         cbAlways.setEnabled(policy.getEnableManual());
@@ -366,12 +375,12 @@ class OtrContactMenu
         cbAlways.addActionListener(this);
 
         JCheckBoxMenuItem cbAlwaysAll = new JCheckBoxMenuItem();
-        cbAlwaysAll.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.CB_AUTO_ALL"));
+        cbAlwaysAll.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.CB_AUTO_ALL"));
         cbAlwaysAll.setEnabled(policy.getEnableManual());
 
         boolean isAutoInit =
-            OtrActivator.scOtrEngine.getGlobalPolicy().getEnableAlways();
+            OmemoActivator.scOmemoEngine.getGlobalPolicy().getEnableAlways();
 
         cbAlwaysAll.setSelected(isAutoInit);
 
@@ -379,22 +388,22 @@ class OtrContactMenu
         cbAlwaysAll.addActionListener(this);
 
         JCheckBoxMenuItem cbRequire = new JCheckBoxMenuItem();
-        cbRequire.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.CB_REQUIRE"));
+        cbRequire.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.CB_REQUIRE"));
         cbRequire.setEnabled(policy.getEnableManual());
 
         String otrMandatoryPropValue
-            = OtrActivator.configService.getString(
-                OtrActivator.OTR_MANDATORY_PROP);
-        String defaultOtrPropValue
-            = OtrActivator.resourceService.getSettingsString(
-                OtrActivator.OTR_MANDATORY_PROP);
+            = OmemoActivator.configService.getString(
+                OmemoActivator.OTR_MANDATORY_PROP);
+        String defaultOmemoPropValue
+            = OmemoActivator.resourceService.getSettingsString(
+                OmemoActivator.OTR_MANDATORY_PROP);
 
         boolean isMandatory = policy.getRequireEncryption();
         if (otrMandatoryPropValue != null)
             isMandatory = Boolean.parseBoolean(otrMandatoryPropValue);
-        else if (!isMandatory && defaultOtrPropValue != null)
-            isMandatory = Boolean.parseBoolean(defaultOtrPropValue);
+        else if (!isMandatory && defaultOmemoPropValue != null)
+            isMandatory = Boolean.parseBoolean(defaultOmemoPropValue);
 
         cbRequire.setSelected(isMandatory);
 
@@ -402,8 +411,8 @@ class OtrContactMenu
         cbRequire.addActionListener(this);
 
         JMenuItem cbReset = new JMenuItem();
-        cbReset.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.menu.CB_RESET"));
+        cbReset.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.menu.CB_RESET"));
         cbReset.setActionCommand(ACTION_COMMAND_CB_RESET);
         cbReset.addActionListener(this);
 
@@ -431,16 +440,18 @@ class OtrContactMenu
         }
     }
 
-    @Override
-    public void sessionStatusChanged(OtrContact otrContact)
+    /*
+     * Implements ScOmemoEngineListener#sessionStatusChanged(Contact).
+     */
+    public void sessionStatusChanged(OmemoContact otrContact)
     {
-        if (otrContact.equals(OtrContactMenu.this.contact))
+        if (otrContact.equals(OmemoContactMenu.this.contact))
             setSessionStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
     }
 
     /**
-     * Sets the {@link OtrContactMenu#sessionStatus} value, updates the menu
+     * Sets the {@link OmemoContactMenu#sessionStatus} value, updates the menu
      * icon and, if necessary, rebuilds the menuitems to match the passed in
      * sessionStatus.
      *
@@ -465,16 +476,16 @@ class OtrContactMenu
     }
 
     /**
-     * Sets the {@link OtrContactMenu#otrPolicy} and, if necessary, rebuilds the
+     * Sets the {@link OmemoContactMenu#otrPolicy} and, if necessary, rebuilds the
      * menuitems to match the passed in otrPolicy.
      *
      * @param otrPolicy
      */
-    private void setOtrPolicy(OtrPolicy otrPolicy)
+    private void setOmemoPolicy(OmemoPolicy otrPolicy)
     {
-        if (!otrPolicy.equals(this.otrPolicy))
+        if (!otrPolicy.equals(this.omemoPolicy))
         {
-            this.otrPolicy = otrPolicy;
+            this.omemoPolicy = otrPolicy;
 
             if ((separateMenu != null)
                     && (separateMenu.isPopupMenuVisible()
@@ -486,7 +497,7 @@ class OtrContactMenu
     }
 
     /**
-     * Updates the menu icon based on {@link OtrContactMenu#sessionStatus}
+     * Updates the menu icon based on {@link OmemoContactMenu#sessionStatus}
      * value.
      */
     private void updateIcon()
@@ -500,40 +511,40 @@ class OtrContactMenu
         {
         case ENCRYPTED:
             PublicKey pubKey =
-                OtrActivator.scOtrEngine.getRemotePublicKey(contact);
+                OmemoActivator.scOmemoEngine.getRemotePublicKey(contact);
             String fingerprint =
-                OtrActivator.scOtrKeyManager.
+                OmemoActivator.scOmemoKeyManager.
                     getFingerprintFromPublicKey(pubKey);
             imageID
-                = OtrActivator.scOtrKeyManager.isVerified(
+                = OmemoActivator.scOmemoKeyManager.isVerified(
                     contact.contact, fingerprint)
-                    ? "plugin.otr.ENCRYPTED_ICON_16x16"
-                    : "plugin.otr.ENCRYPTED_UNVERIFIED_ICON_16x16";
+                    ? "plugin.omemo.ENCRYPTED_ICON_16x16"
+                    : "plugin.omemo.ENCRYPTED_UNVERIFIED_ICON_16x16";
             break;
 
         case FINISHED:
-            imageID = "plugin.otr.FINISHED_ICON_16x16";
+            imageID = "plugin.omemo.FINISHED_ICON_16x16";
             break;
 
         case PLAINTEXT:
-            imageID = "plugin.otr.PLAINTEXT_ICON_16x16";
+            imageID = "plugin.omemo.PLAINTEXT_ICON_16x16";
             break;
 
         default:
             return;
         }
 
-        separateMenu.setIcon(OtrActivator.resourceService.getImage(imageID));
+        separateMenu.setIcon(OmemoActivator.resourceService.getImage(imageID));
     }
 
     @Override
-    public void multipleInstancesDetected(OtrContact contact) {}
+    public void multipleInstancesDetected(OmemoContact contact) {}
 
     @Override
-    public void outgoingSessionChanged(OtrContact otrContact)
+    public void outgoingSessionChanged(OmemoContact otrContact)
     {
-        if (otrContact.equals(OtrContactMenu.this.contact))
+        if (otrContact.equals(OmemoContactMenu.this.contact))
             setSessionStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
     }
 }

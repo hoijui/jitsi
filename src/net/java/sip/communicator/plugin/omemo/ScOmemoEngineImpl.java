@@ -15,18 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.net.*;
 import java.security.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import net.java.otr4j.*;
-import net.java.otr4j.crypto.*;
-import net.java.otr4j.session.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
-import net.java.sip.communicator.plugin.otr.authdialog.*;
+import net.java.omemo4j.*;
+import net.java.omemo4j.crypto.*;
+import net.java.omemo4j.session.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
+import net.java.sip.communicator.plugin.omemo.authdialog.*;
 import net.java.sip.communicator.service.browserlauncher.*;
 import net.java.sip.communicator.service.contactlist.*;
 import net.java.sip.communicator.service.gui.*;
@@ -43,37 +43,37 @@ import org.osgi.framework.*;
  * @author Marin Dzhigarov
  * @author Danny van Heumen
  */
-public class ScOtrEngineImpl
-    implements ScOtrEngine,
+public class ScOmemoEngineImpl
+    implements ScOmemoEngine,
                ChatLinkClickedListener,
                ServiceListener
 {
-    private class ScOtrEngineHost
-        implements OtrEngineHost
+    private class ScOmemoEngineHost
+        implements OmemoEngineHost
     {
         @Override
         public KeyPair getLocalKeyPair(SessionID sessionID)
         {
             AccountID accountID =
-                OtrActivator.getAccountIDByUID(sessionID.getAccountID());
+                OmemoActivator.getAccountIDByUID(sessionID.getAccountID());
             KeyPair keyPair =
-                OtrActivator.scOtrKeyManager.loadKeyPair(accountID);
+                OmemoActivator.scOmemoKeyManager.loadKeyPair(accountID);
             if (keyPair == null)
-                OtrActivator.scOtrKeyManager.generateKeyPair(accountID);
+                OmemoActivator.scOmemoKeyManager.generateKeyPair(accountID);
 
-            return OtrActivator.scOtrKeyManager.loadKeyPair(accountID);
+            return OmemoActivator.scOmemoKeyManager.loadKeyPair(accountID);
         }
 
         @Override
-        public OtrPolicy getSessionPolicy(SessionID sessionID)
+        public OmemoPolicy getSessionPolicy(SessionID sessionID)
         {
-            return getContactPolicy(getOtrContact(sessionID).contact);
+            return getContactPolicy(getOmemoContact(sessionID).contact);
         }
 
         @Override
         public void injectMessage(SessionID sessionID, String messageText)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             Contact contact = otrContact.contact;
             ContactResource resource = null;
 
@@ -104,7 +104,7 @@ public class ScOtrEngineImpl
             // the message with the appropriate content type so that the remote
             // party can properly display the HTML.
             // When otr4j injects QueryMessages it calls
-            // OtrEngineHost.getFallbackMessage() which is currently the only
+            // OmemoEngineHost.getFallbackMessage() which is currently the only
             // host method that uses HTML so we can simply check if the injected
             // message contains the string that getFallbackMessage() returns.
             String otrHtmlFallbackMessage
@@ -127,17 +127,17 @@ public class ScOtrEngineImpl
         @Override
         public void showError(SessionID sessionID, String err)
         {
-            ScOtrEngineImpl.this.showError(sessionID, err);
+            ScOmemoEngineImpl.this.showError(sessionID, err);
         }
 
         public void showWarning(SessionID sessionID, String warn)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
             Contact contact = otrContact.contact;
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.SYSTEM_MESSAGE, warn,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -145,19 +145,19 @@ public class ScOtrEngineImpl
 
         @Override
         public void unreadableMessageReceived(SessionID sessionID)
-            throws OtrException
+            throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             String resourceName = otrContact.resource != null ?
                 "/" + otrContact.resource.getResourceName() : "";
 
             Contact contact = otrContact.contact;
             String error =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.unreadablemsgreceived",
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.unreadablemsgreceived",
                     new String[]
                         {contact.getDisplayName() + resourceName});
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.ERROR_MESSAGE, error,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -165,17 +165,17 @@ public class ScOtrEngineImpl
 
         @Override
         public void unencryptedMessageReceived(SessionID sessionID, String msg)
-            throws OtrException
+            throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
             Contact contact = otrContact.contact;
             String warn =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.unencryptedmsgreceived");
-            OtrActivator.uiService.getChat(contact).addMessage(
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.unencryptedmsgreceived");
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.SYSTEM_MESSAGE, warn,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -183,9 +183,9 @@ public class ScOtrEngineImpl
 
         @Override
         public void smpError(SessionID sessionID, int tlvType, boolean cheated)
-            throws OtrException
+            throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -196,9 +196,9 @@ public class ScOtrEngineImpl
                         + ". Cheated: " + cheated);
 
             String error =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.smperror");
-            OtrActivator.uiService.getChat(contact).addMessage(
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.smperror");
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.ERROR_MESSAGE, error,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -215,9 +215,9 @@ public class ScOtrEngineImpl
         }
 
         @Override
-        public void smpAborted(SessionID sessionID) throws OtrException
+        public void smpAborted(SessionID sessionID) throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -226,10 +226,10 @@ public class ScOtrEngineImpl
             if (session.isSmpInProgress())
             {
                 String warn =
-                    OtrActivator.resourceService.getI18NString(
-                        "plugin.otr.activator.smpaborted",
+                    OmemoActivator.resourceService.getI18NString(
+                        "plugin.omemo.activator.smpaborted",
                         new String[] {contact.getDisplayName()});
-                OtrActivator.uiService.getChat(contact).addMessage(
+                OmemoActivator.uiService.getChat(contact).addMessage(
                     contact.getDisplayName(), new Date(),
                     Chat.SYSTEM_MESSAGE, warn,
                     OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -249,9 +249,9 @@ public class ScOtrEngineImpl
 
         @Override
         public void finishedSessionMessage(SessionID sessionID, String msgText)
-            throws OtrException
+            throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -259,11 +259,11 @@ public class ScOtrEngineImpl
                 "/" + otrContact.resource.getResourceName() : "";
             Contact contact = otrContact.contact;
             String error =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.sessionfinishederror",
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.sessionfinishederror",
                     new String[]
                         {msgText, contact.getDisplayName() + resourceName});
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.ERROR_MESSAGE, error,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -271,19 +271,19 @@ public class ScOtrEngineImpl
 
         @Override
         public void requireEncryptedMessage(SessionID sessionID, String msgText)
-            throws OtrException
+            throws OmemoException
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
-            Contact contact = otrContact.contact;
+                Contact contact = otrContact.contact;
             String error =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.requireencryption",
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.requireencryption",
                     new String[]
                         {msgText});
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(), new Date(),
                 Chat.ERROR_MESSAGE, error,
                 OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
@@ -293,16 +293,16 @@ public class ScOtrEngineImpl
         public byte[] getLocalFingerprintRaw(SessionID sessionID)
         {
             AccountID accountID =
-                OtrActivator.getAccountIDByUID(sessionID.getAccountID());
+                OmemoActivator.getAccountIDByUID(sessionID.getAccountID());
             return
-                OtrActivator.scOtrKeyManager.getLocalFingerprintRaw(accountID);
+                OmemoActivator.scOmemoKeyManager.getLocalFingerprintRaw(accountID);
         }
 
         @Override
         public void askForSecret(
             SessionID sessionID, InstanceTag receiverTag, String question)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -327,12 +327,12 @@ public class ScOtrEngineImpl
         public void verify(
             SessionID sessionID, String fingerprint, boolean approved)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
             Contact contact = otrContact.contact;
-            OtrActivator.scOtrKeyManager.verify(otrContact, fingerprint);
+            OmemoActivator.scOmemoKeyManager.verify(otrContact, fingerprint);
 
             SmpProgressDialog progressDialog = progressDialogMap.get(otrContact);
             if (progressDialog == null)
@@ -348,12 +348,12 @@ public class ScOtrEngineImpl
         @Override
         public void unverify(SessionID sessionID, String fingerprint)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
             Contact contact = otrContact.contact;
-            OtrActivator.scOtrKeyManager.unverify(otrContact, fingerprint);
+            OmemoActivator.scOmemoKeyManager.unverify(otrContact, fingerprint);
 
             SmpProgressDialog progressDialog = progressDialogMap.get(otrContact);
             if (progressDialog == null)
@@ -370,10 +370,10 @@ public class ScOtrEngineImpl
         public String getReplyForUnreadableMessage(SessionID sessionID)
         {
             AccountID accountID =
-                OtrActivator.getAccountIDByUID(sessionID.getAccountID());
+                OmemoActivator.getAccountIDByUID(sessionID.getAccountID());
 
-            return OtrActivator.resourceService.getI18NString(
-                "plugin.otr.activator.unreadablemsgreply",
+            return OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.activator.unreadablemsgreply",
                 new String[] {accountID.getDisplayName(),
                               accountID.getDisplayName()});
         }
@@ -382,17 +382,17 @@ public class ScOtrEngineImpl
         public String getFallbackMessage(SessionID sessionID)
         {
             AccountID accountID =
-                OtrActivator.getAccountIDByUID(sessionID.getAccountID());
+                OmemoActivator.getAccountIDByUID(sessionID.getAccountID());
 
-            return OtrActivator.resourceService.getI18NString(
-                "plugin.otr.activator.fallbackmessage",
+            return OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.activator.fallbackmessage",
                 new String[] {accountID.getDisplayName()});
         }
 
         @Override
         public void multipleInstancesDetected(SessionID sessionID)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -400,11 +400,11 @@ public class ScOtrEngineImpl
                 "/" + otrContact.resource.getResourceName() : "";
             Contact contact = otrContact.contact;
             String message =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.multipleinstancesdetected",
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.multipleinstancesdetected",
                     new String[]
                         {contact.getDisplayName() + resourceName});
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(),
                 new Date(), Chat.SYSTEM_MESSAGE,
                 message,
@@ -414,7 +414,7 @@ public class ScOtrEngineImpl
         @Override
         public void messageFromAnotherInstanceReceived(SessionID sessionID)
         {
-            OtrContact otrContact = getOtrContact(sessionID);
+            OmemoContact otrContact = getOtrContact(sessionID);
             if (otrContact == null)
                 return;
 
@@ -422,11 +422,11 @@ public class ScOtrEngineImpl
                 "/" + otrContact.resource.getResourceName() : "";
             Contact contact = otrContact.contact;
             String message =
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.activator.msgfromanotherinstance",
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.activator.msgfromanotherinstance",
                     new String[]
                         {contact.getDisplayName() + resourceName});
-            OtrActivator.uiService.getChat(contact).addMessage(
+            OmemoActivator.uiService.getChat(contact).addMessage(
                 contact.getDisplayName(),
                 new Date(), Chat.SYSTEM_MESSAGE,
                 message,
@@ -441,7 +441,7 @@ public class ScOtrEngineImpl
         public FragmenterInstructions getFragmenterInstructions(
             final SessionID sessionID)
         {
-            final OtrContact otrContact = getOtrContact(sessionID);
+            final OmemoContact otrContact = getOtrContact(sessionID);
             final OperationSetBasicInstantMessagingTransport transport =
                 otrContact.contact.getProtocolProvider().getOperationSet(
                     OperationSetBasicInstantMessagingTransport.class);
@@ -486,8 +486,8 @@ public class ScOtrEngineImpl
      * The max timeout period elapsed prior to establishing a TIMED_OUT session.
      */
     private static final int SESSION_TIMEOUT =
-        OtrActivator.configService.getInt(
-            "net.java.sip.communicator.plugin.otr.SESSION_STATUS_TIMEOUT",
+        OmemoActivator.configService.getInt(
+            "net.java.sip.communicator.plugin.omemo.SESSION_STATUS_TIMEOUT",
             30000);
 
     /**
@@ -501,15 +501,15 @@ public class ScOtrEngineImpl
      * ScSessionStatus in sync for every Session object.
      */
     private Map<SessionID, ScSessionStatus> scSessionStatusMap =
-        new ConcurrentHashMap<>();
+        new ConcurrentHashMap<SessionID, ScSessionStatus>();
 
-    private static final Map<ScSessionID, OtrContact> contactsMap =
-        new Hashtable<>();
+    private static final Map<ScSessionID, OmemoContact> contactsMap =
+        new Hashtable<ScSessionID, OmemoContact>();
 
-    private static final Map<OtrContact, SmpProgressDialog> progressDialogMap =
-        new ConcurrentHashMap<>();
+    private static final Map<OmemoContact, SmpProgressDialog> progressDialogMap =
+        new ConcurrentHashMap<OmemoContact, SmpProgressDialog>();
 
-    public static OtrContact getOtrContact(SessionID sessionID)
+    public static OmemoContact getOtrContact(SessionID sessionID)
     {
         return contactsMap.get(new ScSessionID(sessionID));
     }
@@ -532,7 +532,7 @@ public class ScOtrEngineImpl
         return null;
     }
 
-    public static SessionID getSessionID(OtrContact otrContact)
+    public static SessionID getSessionID(OmemoContact otrContact)
     {
         ProtocolProviderService pps = otrContact.contact.getProtocolProvider();
         String resourceName = otrContact.resource != null ?
@@ -556,36 +556,37 @@ public class ScOtrEngineImpl
         return sessionID;
     }
 
-    private final OtrConfigurator configurator = new OtrConfigurator();
+    private final OmemoConfigurator configurator = new OmemoConfigurator();
 
-    private final List<String> injectedMessageUIDs = new Vector<>();
+    private final List<String> injectedMessageUIDs = new Vector<String>();
 
-    private final List<ScOtrEngineListener> listeners =new Vector<>();
+    private final List<ScOmemoEngineListener> listeners =
+        new Vector<ScOmemoEngineListener>();
 
     /**
      * The logger
      */
-    private final Logger logger = Logger.getLogger(ScOtrEngineImpl.class);
+    private final Logger logger = Logger.getLogger(ScOmemoEngineImpl.class);
 
-    private final OtrEngineHost otrEngineHost = new ScOtrEngineHost();
+    private final OmemoEngineHost otrEngineHost = new ScOmemoEngineHost();
 
-    private final OtrSessionManager otrEngine;
+    private final OmemoSessionManager otrEngine;
 
-    public ScOtrEngineImpl()
+    public ScOmemoEngineImpl()
     {
-        otrEngine = new OtrSessionManagerImpl(otrEngineHost);
+        otrEngine = new OmemoSessionManagerImpl(otrEngineHost);
 
         // Clears the map after previous instance
         // This is required because of OSGi restarts in the same VM on Android
         contactsMap.clear();
         scSessionStatusMap.clear();
 
-        this.otrEngine.addOtrEngineListener(new OtrEngineListener()
+        this.omemoEngine.addOmemoEngineListener(new OmemoEngineListener()
         {
             @Override
             public void sessionStatusChanged(SessionID sessionID)
             {
-                OtrContact otrContact = getOtrContact(sessionID);
+                OmemoContact otrContact = getOtrContact(sessionID);
                 if (otrContact == null)
                     return;
 
@@ -610,10 +611,10 @@ public class ScOtrEngineImpl
                     try
                     {
                         remoteFingerprint =
-                            new OtrCryptoEngineImpl().
+                            new OmemoCryptoEngineImpl().
                                 getFingerprint(remotePubKey);
                     }
-                    catch (OtrCryptoException e)
+                    catch (OmemoCryptoException e)
                     {
                         logger.debug(
                             "Could not get the fingerprint from the "
@@ -621,22 +622,22 @@ public class ScOtrEngineImpl
                     }
 
                     List<String> allFingerprintsOfContact =
-                        OtrActivator.scOtrKeyManager.
+                        OmemoActivator.scOmemoKeyManager.
                             getAllRemoteFingerprints(contact);
                     if (allFingerprintsOfContact != null)
                     {
                         if (!allFingerprintsOfContact.contains(
                                 remoteFingerprint))
                         {
-                            OtrActivator.scOtrKeyManager.saveFingerprint(
+                            OmemoActivator.scOmemoKeyManager.saveFingerprint(
                                 contact, remoteFingerprint);
                         }
                     }
 
-                    if (!OtrActivator.scOtrKeyManager.isVerified(
+                    if (!OmemoActivator.scOmemoKeyManager.isVerified(
                             contact, remoteFingerprint))
                     {
-                        OtrActivator.scOtrKeyManager.unverify(
+                        OmemoActivator.scOmemoKeyManager.unverify(
                             otrContact, remoteFingerprint);
                         UUID sessionGuid = null;
                         for(ScSessionID scSessionID : contactsMap.keySet())
@@ -648,12 +649,12 @@ public class ScOtrEngineImpl
                             }
                         }
 
-                        OtrActivator.uiService.getChat(contact)
-                            .addChatLinkClickedListener(ScOtrEngineImpl.this);
+                        OmemoActivator.uiService.getChat(contact)
+                            .addChatLinkClickedListener(ScOmemoEngineImpl.this);
 
                         String unverifiedSessionWarning
-                            = OtrActivator.resourceService.getI18NString(
-                                    "plugin.otr.activator"
+                            = OmemoActivator.resourceService.getI18NString(
+                                    "plugin.omemo.activator"
                                         + ".unverifiedsessionwarning",
                                     new String[]
                                     {
@@ -662,7 +663,7 @@ public class ScOtrEngineImpl
                                         "AUTHENTIFICATION",
                                         sessionGuid.toString()
                                     });
-                        OtrActivator.uiService.getChat(contact).addMessage(
+                        OmemoActivator.uiService.getChat(contact).addMessage(
                             contact.getDisplayName(),
                             new Date(), Chat.SYSTEM_MESSAGE,
                             unverifiedSessionWarning,
@@ -672,15 +673,15 @@ public class ScOtrEngineImpl
 
                     // show info whether history is on or off
                     String otrAndHistoryMessage;
-                    if(!OtrActivator.getMessageHistoryService()
+                    if(!OmemoActivator.getMessageHistoryService()
                         .isHistoryLoggingEnabled() ||
                         !isHistoryLoggingEnabled(contact))
                     {
                         otrAndHistoryMessage =
-                            OtrActivator.resourceService.getI18NString(
-                                "plugin.otr.activator.historyoff",
+                            OmemoActivator.resourceService.getI18NString(
+                                "plugin.omemo.activator.historyoff",
                                 new String[]{
-                                    OtrActivator.resourceService
+                                    OmemoActivator.resourceService
                                         .getSettingsString(
                                             "service.gui.APPLICATION_NAME"),
                                     this.getClass().getName(),
@@ -690,43 +691,43 @@ public class ScOtrEngineImpl
                     else
                     {
                         otrAndHistoryMessage =
-                            OtrActivator.resourceService.getI18NString(
-                                "plugin.otr.activator.historyon",
+                            OmemoActivator.resourceService.getI18NString(
+                                "plugin.omemo.activator.historyon",
                                 new String[]{
-                                    OtrActivator.resourceService
+                                    OmemoActivator.resourceService
                                         .getSettingsString(
                                             "service.gui.APPLICATION_NAME"),
                                     this.getClass().getName(),
                                     "showHistoryPopupMenu"
                                 });
                     }
-                    OtrActivator.uiService.getChat(contact).addMessage(
+                    OmemoActivator.uiService.getChat(contact).addMessage(
                         contact.getDisplayName(),
                         new Date(), Chat.SYSTEM_MESSAGE,
                         otrAndHistoryMessage,
                         OperationSetBasicInstantMessaging.HTML_MIME_TYPE);
 
                     message =
-                        OtrActivator.resourceService.getI18NString(
-                            "plugin.otr.activator.multipleinstancesdetected",
+                        OmemoActivator.resourceService.getI18NString(
+                            "plugin.omemo.activator.multipleinstancesdetected",
                             new String[]
                                 {contact.getDisplayName()});
 
                     if (contact.supportResources()
                         && contact.getResources() != null
                         && contact.getResources().size() > 1)
-                        OtrActivator.uiService.getChat(contact).addMessage(
+                        OmemoActivator.uiService.getChat(contact).addMessage(
                             contact.getDisplayName(),
                             new Date(), Chat.SYSTEM_MESSAGE,
                             message,
                             OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
 
                     message
-                        = OtrActivator.resourceService.getI18NString(
-                                OtrActivator.scOtrKeyManager.isVerified(
+                        = OmemoActivator.resourceService.getI18NString(
+                                OmemoActivator.scOmemoKeyManager.isVerified(
                                     contact, remoteFingerprint)
-                                    ? "plugin.otr.activator.sessionstared"
-                                    : "plugin.otr.activator"
+                                    ? "plugin.omemo.activator.sessionstared"
+                                    : "plugin.omemo.activator"
                                         + ".unverifiedsessionstared",
                                 new String[]
                                     {contact.getDisplayName() + resourceName});
@@ -736,8 +737,8 @@ public class ScOtrEngineImpl
                     scSessionStatus = ScSessionStatus.FINISHED;
                     scSessionStatusMap.put(sessionID, scSessionStatus);
                     message =
-                        OtrActivator.resourceService.getI18NString(
-                            "plugin.otr.activator.sessionfinished",
+                        OmemoActivator.resourceService.getI18NString(
+                            "plugin.omemo.activator.sessionfinished",
                             new String[]
                                 {contact.getDisplayName() + resourceName});
                     break;
@@ -745,40 +746,40 @@ public class ScOtrEngineImpl
                     scSessionStatus = ScSessionStatus.PLAINTEXT;
                     scSessionStatusMap.put(sessionID, scSessionStatus);
                     message =
-                        OtrActivator.resourceService.getI18NString(
-                            "plugin.otr.activator.sessionlost", new String[]
+                        OmemoActivator.resourceService.getI18NString(
+                            "plugin.omemo.activator.sessionlost", new String[]
                                 {contact.getDisplayName() + resourceName});
                     break;
                 }
 
-                OtrActivator.uiService.getChat(contact).addMessage(
+                OmemoActivator.uiService.getChat(contact).addMessage(
                     contact.getDisplayName(), new Date(),
                     Chat.SYSTEM_MESSAGE, message,
                     OperationSetBasicInstantMessaging.HTML_MIME_TYPE);
 
-                for (ScOtrEngineListener l : getListeners())
+                for (ScOmemoEngineListener l : getListeners())
                     l.sessionStatusChanged(otrContact);
             }
 
             @Override
             public void multipleInstancesDetected(SessionID sessionID)
             {
-                OtrContact otrContact = getOtrContact(sessionID);
+                OmemoContact otrContact = getOtrContact(sessionID);
                 if (otrContact == null)
                     return;
 
-                for (ScOtrEngineListener l : getListeners())
+                for (ScOmemoEngineListener l : getListeners())
                     l.multipleInstancesDetected(otrContact);
             }
 
             @Override
             public void outgoingSessionChanged(SessionID sessionID)
             {
-                OtrContact otrContact = getOtrContact(sessionID);
+                OmemoContact otrContact = getOtrContact(sessionID);
                 if (otrContact == null)
                     return;
 
-                for (ScOtrEngineListener l : getListeners())
+                for (ScOmemoEngineListener l : getListeners())
                     l.outgoingSessionChanged(otrContact);
             }
         });
@@ -793,17 +794,17 @@ public class ScOtrEngineImpl
      */
     private boolean isHistoryLoggingEnabled(Contact contact)
     {
-        MetaContact metaContact = OtrActivator
+        MetaContact metaContact = OmemoActivator
             .getContactListService().findMetaContactByContact(contact);
         if(metaContact != null)
-            return OtrActivator.getMessageHistoryService()
+            return OmemoActivator.getMessageHistoryService()
                 .isHistoryLoggingEnabled(metaContact.getMetaUID());
         else
             return true;
     }
 
     @Override
-    public void addListener(ScOtrEngineListener l)
+    public void addListener(ScOmemoEngineListener l)
     {
         synchronized (listeners)
         {
@@ -825,10 +826,10 @@ public class ScOtrEngineImpl
                         "No UUID found in OTR authenticate URL");
 
             // Looks for registered action handler
-            OtrActionHandler actionHandler
+            OmemoActionHandler actionHandler
                     = ServiceUtils.getService(
-                            OtrActivator.bundleContext,
-                            OtrActionHandler.class);
+                            OmemoActivator.bundleContext,
+                            OmemoActionHandler.class);
 
             if(actionHandler != null)
             {
@@ -836,13 +837,13 @@ public class ScOtrEngineImpl
             }
             else
             {
-                logger.error("No OtrActionHandler registered");
+                logger.error("No OmemoActionHandler registered");
             }
         }
     }
 
     @Override
-    public void endSession(OtrContact otrContact)
+    public void endSession(OmemoContact otrContact)
     {
         SessionID sessionID = getSessionID(otrContact);
         try
@@ -851,14 +852,14 @@ public class ScOtrEngineImpl
 
             otrEngine.getSession(sessionID).endSession();
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             showError(sessionID, e.getMessage());
         }
     }
 
     @Override
-    public OtrPolicy getContactPolicy(Contact contact)
+    public OmemoPolicy getContactPolicy(Contact contact)
     {
         ProtocolProviderService pps = contact.getProtocolProvider();
         SessionID sessionID
@@ -872,35 +873,35 @@ public class ScOtrEngineImpl
         if (policy < 0)
             return getGlobalPolicy();
         else
-            return new OtrPolicyImpl(policy);
+            return new OmemoPolicyImpl(policy);
     }
 
     @Override
-    public OtrPolicy getGlobalPolicy()
+    public OmemoPolicy getGlobalPolicy()
     {
         /*
          * SEND_WHITESPACE_TAG bit will be lowered until we stabilize the OTR.
          */
-        int defaultScOtrPolicy =
-            OtrPolicy.OTRL_POLICY_DEFAULT & ~OtrPolicy.SEND_WHITESPACE_TAG;
-        return new OtrPolicyImpl(this.configurator.getPropertyInt(
-            "GLOBAL_POLICY", defaultScOtrPolicy));
+        int defaultScOmemoPolicy =
+            OmemoPolicy.OTRL_POLICY_DEFAULT & ~OtrPolicy.SEND_WHITESPACE_TAG;
+        return new OmemoPolicyImpl(this.configurator.getPropertyInt(
+            "GLOBAL_POLICY", defaultScOmemoPolicy));
     }
 
     /**
-     * Gets a copy of the list of <tt>ScOtrEngineListener</tt>s registered with
+     * Gets a copy of the list of <tt>ScOmemoEngineListener</tt>s registered with
      * this instance which may safely be iterated without the risk of a
      * <tt>ConcurrentModificationException</tt>.
      *
-     * @return a copy of the list of <tt>ScOtrEngineListener<tt>s registered
+     * @return a copy of the list of <tt>ScOmemoEngineListener<tt>s registered
      * with this instance which may safely be iterated without the risk of a
      * <tt>ConcurrentModificationException</tt>
      */
-    private ScOtrEngineListener[] getListeners()
+    private ScOmemoEngineListener[] getListeners()
     {
         synchronized (listeners)
         {
-            return listeners.toArray(new ScOtrEngineListener[listeners.size()]);
+            return listeners.toArray(new ScOmemoEngineListener[listeners.size()]);
         }
     }
 
@@ -914,11 +915,11 @@ public class ScOtrEngineImpl
     {
         private final Timer timer = new Timer();
 
-        private final Map<OtrContact, TimerTask> tasks =
-            new ConcurrentHashMap<>();
+        private final Map<OmemoContact, TimerTask> tasks =
+            new ConcurrentHashMap<OmemoContact, TimerTask>();
 
         public void scheduleScSessionStatusChange(
-            final OtrContact otrContact, final ScSessionStatus status)
+            final OmemoContact otrContact, final ScSessionStatus status)
         {
             cancel(otrContact);
 
@@ -935,7 +936,7 @@ public class ScOtrEngineImpl
             tasks.put(otrContact, task);
         }
 
-        public void cancel(final OtrContact otrContact)
+        public void cancel(final OmemoContact otrContact)
         {
             TimerTask task = tasks.get(otrContact);
             if (task != null)
@@ -946,7 +947,7 @@ public class ScOtrEngineImpl
         public void serviceChanged(ServiceEvent ev)
         {
             Object service
-                = OtrActivator.bundleContext.getService(
+                = OmemoActivator.bundleContext.getService(
                     ev.getServiceReference());
 
             if (!(service instanceof ProtocolProviderService))
@@ -957,11 +958,11 @@ public class ScOtrEngineImpl
                 ProtocolProviderService provider
                     = (ProtocolProviderService) service;
 
-                Iterator<OtrContact> i = tasks.keySet().iterator();
+                Iterator<OmemoContact> i = tasks.keySet().iterator();
 
                 while (i.hasNext())
                 {
-                    OtrContact otrContact = i.next();
+                    OmemoContact otrContact = i.next();
                     if (provider.equals(
                         otrContact.contact.getProtocolProvider()))
                     {
@@ -973,16 +974,16 @@ public class ScOtrEngineImpl
         }
     }
 
-    private void setSessionStatus(OtrContact contact, ScSessionStatus status)
+    private void setSessionStatus(OmemoContact contact, ScSessionStatus status)
     {
         scSessionStatusMap.put(getSessionID(contact), status);
         scheduler.cancel(contact);
-        for (ScOtrEngineListener l : getListeners())
+        for (ScOmemoEngineListener l : getListeners())
             l.sessionStatusChanged(contact);
     }
 
     @Override
-    public ScSessionStatus getSessionStatus(OtrContact contact)
+    public ScSessionStatus getSessionStatus(OmemoContact contact)
     {
         SessionID sessionID = getSessionID(contact);
         SessionStatus sessionStatus = otrEngine.getSession(sessionID).getSessionStatus();
@@ -1016,28 +1017,28 @@ public class ScOtrEngineImpl
     public void launchHelp()
     {
         ServiceReference ref =
-            OtrActivator.bundleContext
+            OmemoActivator.bundleContext
                 .getServiceReference(BrowserLauncherService.class.getName());
 
         if (ref == null)
             return;
 
         BrowserLauncherService service =
-            (BrowserLauncherService) OtrActivator.bundleContext.getService(ref);
+            (BrowserLauncherService) OmemoActivator.bundleContext.getService(ref);
 
-        service.openURL(OtrActivator.resourceService
-            .getI18NString("plugin.otr.authbuddydialog.HELP_URI"));
+        service.openURL(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.authbuddydialog.HELP_URI"));
     }
 
     @Override
-    public void refreshSession(OtrContact otrContact)
+    public void refreshSession(OmemoContact otrContact)
     {
         SessionID sessionID = getSessionID(otrContact);
         try
         {
             otrEngine.getSession(sessionID).refreshSession();
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error refreshing session", e);
             showError(sessionID, e.getMessage());
@@ -1045,7 +1046,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public void removeListener(ScOtrEngineListener l)
+    public void removeListener(ScOmemoEngineListener l)
     {
         synchronized (listeners)
         {
@@ -1061,7 +1062,7 @@ public class ScOtrEngineImpl
     public void serviceChanged(ServiceEvent ev)
     {
         Object service
-            = OtrActivator.bundleContext.getService(ev.getServiceReference());
+            = OmemoActivator.bundleContext.getService(ev.getServiceReference());
 
         if (!(service instanceof ProtocolProviderService))
             return;
@@ -1083,11 +1084,11 @@ public class ScOtrEngineImpl
 
             synchronized(contactsMap)
             {
-                Iterator<OtrContact> i = contactsMap.values().iterator();
+                Iterator<OmemoContact> i = contactsMap.values().iterator();
 
                 while (i.hasNext())
                 {
-                    OtrContact otrContact = i.next();
+                    OmemoContact otrContact = i.next();
                     if (provider.equals(
                         otrContact.contact.getProtocolProvider()))
                     {
@@ -1097,7 +1098,7 @@ public class ScOtrEngineImpl
                 }
             }
 
-            Iterator<OtrContact> i = progressDialogMap.keySet().iterator();
+            Iterator<OmemoContact> i = progressDialogMap.keySet().iterator();
 
             while (i.hasNext())
             {
@@ -1109,7 +1110,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public void setContactPolicy(Contact contact, OtrPolicy policy)
+    public void setContactPolicy(Contact contact, OmemoPolicy policy)
     {
         ProtocolProviderService pps = contact.getProtocolProvider();
         SessionID sessionID
@@ -1124,44 +1125,44 @@ public class ScOtrEngineImpl
         else
             this.configurator.setProperty(propertyID, policy.getPolicy());
 
-        for (ScOtrEngineListener l : getListeners())
+        for (ScOmemoEngineListener l : getListeners())
             l.contactPolicyChanged(contact);
     }
 
     @Override
-    public void setGlobalPolicy(OtrPolicy policy)
+    public void setGlobalPolicy(OmemoPolicy policy)
     {
         if (policy == null)
             this.configurator.removeProperty("GLOBAL_POLICY");
         else
             this.configurator.setProperty("GLOBAL_POLICY", policy.getPolicy());
 
-        for (ScOtrEngineListener l : getListeners())
+        for (ScOmemoEngineListener l : getListeners())
             l.globalPolicyChanged();
     }
 
     public void showError(SessionID sessionID, String err)
     {
-        OtrContact otrContact = getOtrContact(sessionID);
+        OmemoContact otrContact = getOtrContact(sessionID);
         if (otrContact == null)
             return;
 
         Contact contact = otrContact.contact;
-        OtrActivator.uiService.getChat(contact).addMessage(
+        OmemoActivator.uiService.getChat(contact).addMessage(
             contact.getDisplayName(), new Date(),
             Chat.ERROR_MESSAGE, err,
             OperationSetBasicInstantMessaging.DEFAULT_MIME_TYPE);
     }
 
     @Override
-    public void startSession(OtrContact otrContact)
+    public void startSession(OmemoContact otrContact)
     {
         SessionID sessionID = getSessionID(otrContact);
 
         ScSessionStatus scSessionStatus = getSessionStatus(otrContact);
         scSessionStatus = ScSessionStatus.LOADING;
         scSessionStatusMap.put(sessionID, scSessionStatus);
-        for (ScOtrEngineListener l : getListeners())
+        for (ScOmemoEngineListener l : getListeners())
         {
             l.sessionStatusChanged(otrContact);
         }
@@ -1173,7 +1174,7 @@ public class ScOtrEngineImpl
         {
             otrEngine.getSession(sessionID).startSession();
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error starting session", e);
             showError(sessionID, e.getMessage());
@@ -1181,14 +1182,14 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public String transformReceiving(OtrContact otrContact, String msgText)
+    public String transformReceiving(OmemoContact otrContact, String msgText)
     {
         SessionID sessionID = getSessionID(otrContact);
         try
         {
             return otrEngine.getSession(sessionID).transformReceiving(msgText);
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error receiving the message", e);
             showError(sessionID, e.getMessage());
@@ -1197,14 +1198,14 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public String[] transformSending(OtrContact otrContact, String msgText)
+    public String[] transformSending(OmemoContact otrContact, String msgText)
     {
         SessionID sessionID = getSessionID(otrContact);
         try
         {
             return otrEngine.getSession(sessionID).transformSending(msgText);
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error transforming the message", e);
             showError(sessionID, e.getMessage());
@@ -1212,14 +1213,14 @@ public class ScOtrEngineImpl
         }
     }
 
-    private Session getSession(OtrContact contact)
+    private Session getSession(OmemoContact contact)
     {
         SessionID sessionID = getSessionID(contact);
         return otrEngine.getSession(sessionID);
     }
 
     @Override
-    public void initSmp(OtrContact otrContact, String question, String secret)
+    public void initSmp(OmemoContact otrContact, String question, String secret)
     {
         Session session = getSession(otrContact);
         try
@@ -1236,7 +1237,7 @@ public class ScOtrEngineImpl
             progressDialog.init();
             progressDialog.setVisible(true);
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error initializing SMP session with contact "
                          + otrContact.contact.getDisplayName(), e);
@@ -1245,7 +1246,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public void respondSmp( OtrContact otrContact,
+    public void respondSmp( OmemoContact otrContact,
                             InstanceTag receiverTag,
                             String question,
                             String secret)
@@ -1265,7 +1266,7 @@ public class ScOtrEngineImpl
             progressDialog.incrementProgress();
             progressDialog.setVisible(true);
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error(
                 "Error occured when sending SMP response to contact "
@@ -1275,7 +1276,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public void abortSmp(OtrContact otrContact)
+    public void abortSmp(OmemoContact otrContact)
     {
         Session session = getSession(otrContact);
         try
@@ -1291,7 +1292,7 @@ public class ScOtrEngineImpl
 
             progressDialog.dispose();
         }
-        catch (OtrException e)
+        catch (OmemoException e)
         {
             logger.error("Error aborting SMP session with contact "
                          + otrContact.contact.getDisplayName(), e);
@@ -1300,7 +1301,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public PublicKey getRemotePublicKey(OtrContact otrContact)
+    public PublicKey getRemotePublicKey(OmemoContact otrContact)
     {
         if (otrContact == null)
             return null;
@@ -1311,7 +1312,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public List<Session> getSessionInstances(OtrContact otrContact)
+    public List<Session> getSessionInstances(OmemoContact otrContact)
     {
         if (otrContact == null)
             return Collections.emptyList();
@@ -1319,7 +1320,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public boolean setOutgoingSession(OtrContact contact, InstanceTag tag)
+    public boolean setOutgoingSession(OmemoContact contact, InstanceTag tag)
     {
         if (contact == null)
             return false;
@@ -1331,7 +1332,7 @@ public class ScOtrEngineImpl
     }
 
     @Override
-    public Session getOutgoingSession(OtrContact contact)
+    public Session getOutgoingSession(OmemoContact contact)
     {
         if (contact == null)
             return null;

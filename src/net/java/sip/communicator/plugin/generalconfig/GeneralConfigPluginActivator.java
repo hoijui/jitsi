@@ -123,8 +123,7 @@ public class GeneralConfigPluginActivator
     {
         uiService = (UIService)dependentService;
 
-        Dictionary<String, String> properties
-            = new Hashtable<String, String>();
+        Dictionary<String, String> properties = new Hashtable<>();
 
         // If the general configuration form is disabled don't continue.
         if (!getConfigurationService().getBoolean(DISABLED_PROP, false))
@@ -257,6 +256,7 @@ public class GeneralConfigPluginActivator
      * @param bc the bundle context
      * @throws Exception if something goes wrong
      */
+    @Override
     public void stop(BundleContext bc) throws Exception
     {
         stopThread();
@@ -315,6 +315,7 @@ public class GeneralConfigPluginActivator
      * functionality i.e. to call #startThread().
      * @param serviceEvent the <tt>ServiceEvent</tt> that notified us
      */
+    @Override
     public void serviceChanged(ServiceEvent serviceEvent)
     {
         switch (serviceEvent.getType())
@@ -394,7 +395,7 @@ public class GeneralConfigPluginActivator
             return new ProtocolProviderService[0];
         }
 
-        Set<ProtocolProviderService> pps = new HashSet<ProtocolProviderService>();
+        Set<ProtocolProviderService> pps = new HashSet<>();
 
         for (ServiceReference serviceReference : serRefs)
         {
@@ -419,7 +420,7 @@ public class GeneralConfigPluginActivator
                 = ResourceManagementServiceUtils.getService(bundleContext);
         return resourceService;
     }
-    
+
     /**
      * Gets the service giving access to message history.
      *
@@ -428,7 +429,7 @@ public class GeneralConfigPluginActivator
     public static MessageHistoryService getMessageHistoryService()
     {
         if (messageHistoryService == null)
-            messageHistoryService = ServiceUtils.getService(bundleContext, 
+            messageHistoryService = ServiceUtils.getService(bundleContext,
                 MessageHistoryService.class);
         return messageHistoryService;
     }

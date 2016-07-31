@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -24,9 +24,9 @@ import java.security.*;
 import javax.swing.*;
 
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
-import net.java.sip.communicator.plugin.otr.authdialog.FingerprintAuthenticationPanel.ActionComboBoxItem;
+import net.java.sip.communicator.plugin.omemo.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
+import net.java.sip.communicator.plugin.omemo.authdialog.FingerprintAuthenticationPanel.ActionComboBoxItem;
 import net.java.sip.communicator.service.protocol.*;
 
 /**
@@ -34,18 +34,18 @@ import net.java.sip.communicator.service.protocol.*;
  * @author Marin Dzhigarov
  */
 @SuppressWarnings("serial")
-public class OtrBuddyAuthenticationDialog
+public class OmemoBuddyAuthenticationDialog
     extends SIPCommDialog
 {
-    private final OtrContact contact;
+    private final OmemoContact contact;
 
     /**
-     * The {@link OtrBuddyAuthenticationDialog} ctor.
+     * The {@link OmemoBuddyAuthenticationDialog} ctor.
      *
      * @param contact The {@link Contact} this
-     *            {@link OtrBuddyAuthenticationDialog} refers to.
+     *            {@link OmemoBuddyAuthenticationDialog} refers to.
      */
-    public OtrBuddyAuthenticationDialog(OtrContact contact)
+    public OmemoBuddyAuthenticationDialog(OmemoContact contact)
     {
         super(false);
         this.contact = contact;
@@ -54,12 +54,12 @@ public class OtrBuddyAuthenticationDialog
     }
 
     /**
-     * Initializes the {@link OtrBuddyAuthenticationDialog} components.
+     * Initializes the {@link OmemoBuddyAuthenticationDialog} components.
      */
     private void initComponents()
     {
-        this.setTitle(OtrActivator.resourceService
-            .getI18NString("plugin.otr.authbuddydialog.TITLE"));
+        this.setTitle(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.authbuddydialog.TITLE"));
 
         TransparentPanel mainPanel = new TransparentPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
@@ -67,26 +67,26 @@ public class OtrBuddyAuthenticationDialog
         mainPanel.setPreferredSize(new Dimension(350, 400));
 
         JTextArea generalInformation = new CustomTextArea();
-        generalInformation.setText(OtrActivator.resourceService
-            .getI18NString("plugin.otr.authbuddydialog.AUTHENTICATION_INFO"));
+        generalInformation.setText(OmemoActivator.resourceService
+            .getI18NString("plugin.omemo.authbuddydialog.AUTHENTICATION_INFO"));
         mainPanel.add(generalInformation);
 
         mainPanel.add(Box.createVerticalStrut(10));
 
         // Add authentication method label and combo box.
         final String am[] = new String[]{
-            OtrActivator.resourceService.getI18NString(
-                "plugin.otr.authbuddydialog.AUTHENTICATION_METHOD_QUESTION"),
-            OtrActivator.resourceService.getI18NString(
-                "plugin.otr.authbuddydialog.AUTHENTICATION_METHOD_SECRET"),
-            OtrActivator.resourceService.getI18NString(
-                "plugin.otr.authbuddydialog.AUTHENTICATION_METHOD_FINGERPRINT")};
+            OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.authbuddydialog.AUTHENTICATION_METHOD_QUESTION"),
+            OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.authbuddydialog.AUTHENTICATION_METHOD_SECRET"),
+            OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.authbuddydialog.AUTHENTICATION_METHOD_FINGERPRINT")};
         final JComboBox authenticationMethodComboBox =
             new JComboBox(am);
         JTextArea authMethodLabel = new CustomTextArea();
         authMethodLabel.setText(
-                OtrActivator.resourceService.getI18NString(
-                    "plugin.otr.authbuddydialog.AUTHENTICATION_METHOD"));
+                OmemoActivator.resourceService.getI18NString(
+                    "plugin.omemo.authbuddydialog.AUTHENTICATION_METHOD"));
         mainPanel.add(authMethodLabel);
         mainPanel.add(authenticationMethodComboBox);
         mainPanel.add(Box.createVerticalStrut(10));
@@ -131,14 +131,13 @@ public class OtrBuddyAuthenticationDialog
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
         JButton helpButton =
-            new JButton(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.HELP"));
+            new JButton(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.HELP"));
         helpButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent arg0)
             {
-                OtrActivator.scOtrEngine.launchHelp();
+                OmemoActivator.scOmemoEngine.launchHelp();
             }
         });
 
@@ -151,11 +150,10 @@ public class OtrBuddyAuthenticationDialog
         c.weightx = 0.0;
 
         JButton cancelButton =
-            new JButton(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.CANCEL"));
+            new JButton(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.CANCEL"));
         cancelButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent e)
             {
                 dispose();
@@ -164,11 +162,10 @@ public class OtrBuddyAuthenticationDialog
         buttonPanel.add(cancelButton, c);
 
         JButton authenticateButton =
-            new JButton(OtrActivator.resourceService
-                .getI18NString("plugin.otr.authbuddydialog.AUTHENTICATE_BUDDY"));
+            new JButton(OmemoActivator.resourceService
+                .getI18NString("plugin.omemo.authbuddydialog.AUTHENTICATE_BUDDY"));
         authenticateButton.addActionListener(new ActionListener()
         {
-            @Override
             public void actionPerformed(ActionEvent e)
             {
                 String authenticationMethod =
@@ -178,7 +175,7 @@ public class OtrBuddyAuthenticationDialog
                     String secret = secretQuestionPanel.getSecret();
                     String question = secretQuestionPanel.getQuestion();
 
-                    OtrActivator.scOtrEngine.initSmp(contact, question, secret);
+                    OmemoActivator.scOmemoEngine.initSmp(contact, question, secret);
                     dispose();
                 }
                 else if (authenticationMethod.equals(am[1]))
@@ -186,7 +183,7 @@ public class OtrBuddyAuthenticationDialog
                     String secret = sharedSecretPanel.getSecret();
                     String question = null;
 
-                    OtrActivator.scOtrEngine.initSmp(contact, question, secret);
+                    OmemoActivator.scOmemoEngine.initSmp(contact, question, secret);
                     dispose();
                 }
                 else if (authenticationMethod.equals(am[2]))
@@ -195,18 +192,18 @@ public class OtrBuddyAuthenticationDialog
                         (ActionComboBoxItem) fingerprintPanel.
                             getCbAction().getSelectedItem();
                     PublicKey pubKey =
-                        OtrActivator.scOtrEngine.getRemotePublicKey(contact);
+                        OmemoActivator.scOmemoEngine.getRemotePublicKey(contact);
                     String fingerprint =
-                        OtrActivator.scOtrKeyManager.
+                        OmemoActivator.scOmemoKeyManager.
                             getFingerprintFromPublicKey(pubKey);
                     switch (actionItem.action)
                     {
                     case I_HAVE:
-                        OtrActivator.scOtrKeyManager.verify(
+                        OmemoActivator.scOmemoKeyManager.verify(
                             contact, fingerprint);
                         break;
                     case I_HAVE_NOT:
-                        OtrActivator.scOtrKeyManager.unverify(
+                        OmemoActivator.scOmemoKeyManager.unverify(
                             contact, fingerprint);
                         break;
                     }

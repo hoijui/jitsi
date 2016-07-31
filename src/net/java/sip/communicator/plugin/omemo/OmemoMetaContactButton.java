@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -24,10 +24,10 @@ import java.security.*;
 
 import javax.imageio.*;
 
-import net.java.otr4j.*;
-import net.java.otr4j.session.*;
+import net.jomemo.*;
+import net.jomemo.session.*;
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.contactlist.*;
 import net.java.sip.communicator.service.gui.*;
 import net.java.sip.communicator.service.gui.Container;
@@ -41,19 +41,19 @@ import net.java.sip.communicator.util.*;
  * @author George Politis
  * @author Marin Dzhigarov
  */
-public class OtrMetaContactButton
+public class OmemoMetaContactButton
     extends AbstractPluginComponent
-    implements ScOtrEngineListener,
-               ScOtrKeyManagerListener
+    implements ScOmemoEngineListener,
+               ScOmemoKeyManagerListener
 {
     /**
      * The logger
      */
-    private final Logger logger = Logger.getLogger(OtrMetaContactButton.class);
+    private final Logger logger = Logger.getLogger(OmemoMetaContactButton.class);
 
     private SIPCommButton button;
 
-    private OtrContact otrContact;
+    private OmemoContact otrContact;
 
     private AnimatedImage animatedPadlockImage;
 
@@ -67,67 +67,63 @@ public class OtrMetaContactButton
 
     private Image timedoutPadlockImage;
 
-    @Override
-    public void sessionStatusChanged(OtrContact otrContact)
+    public void sessionStatusChanged(OmemoContact otrContact)
     {
-        // OtrMetaContactButton.this.contact can be null.
-        if (otrContact.equals(OtrMetaContactButton.this.otrContact))
+        // OmemoMetaContactButton.this.contact can be null.
+        if (otrContact.equals(OmemoMetaContactButton.this.omemoContact))
         {
             setStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
         }
     }
 
-    @Override
     public void contactPolicyChanged(Contact contact)
     {
-        // OtrMetaContactButton.this.contact can be null.
-        if (OtrMetaContactButton.this.otrContact != null &&
-            contact.equals(OtrMetaContactButton.this.otrContact.contact))
+        // OmemoMetaContactButton.this.contact can be null.
+        if (OmemoMetaContactButton.this.omemoContact != null &&
+            contact.equals(OmemoMetaContactButton.this.omemoContact.contact))
         {
             setPolicy(
-                OtrActivator.scOtrEngine.getContactPolicy(contact));
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact));
         }
     }
 
-    @Override
     public void globalPolicyChanged()
     {
-        if (OtrMetaContactButton.this.otrContact != null)
+        if (OmemoMetaContactButton.this.omemoContact != null)
             setPolicy(
-                OtrActivator.scOtrEngine.getContactPolicy(otrContact.contact));
+                OmemoActivator.scOmemoEngine.getContactPolicy(otrContact.contact));
     }
 
-    @Override
-    public void contactVerificationStatusChanged(OtrContact otrContact)
+    public void contactVerificationStatusChanged(OmemoContact otrContact)
     {
-        // OtrMetaContactButton.this.contact can be null.
-        if (otrContact.equals(OtrMetaContactButton.this.otrContact))
+        // OmemoMetaContactButton.this.contact can be null.
+        if (otrContact.equals(OmemoMetaContactButton.this.omemoContact))
         {
             setStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
         }
     }
 
-    public OtrMetaContactButton(Container container,
+    public OmemoMetaContactButton(Container container,
                                 PluginComponentFactory parentFactory)
     {
         super(container, parentFactory);
 
         /*
-         * XXX This OtrMetaContactButton instance cannot be added as a listener
-         * to scOtrEngine and scOtrKeyManager without being removed later on
+         * XXX This OmemoMetaContactButton instance cannot be added as a listener
+         * to scOmemoEngine and scOmemoKeyManager without being removed later on
          * because the latter live forever. Unfortunately, the dispose() method
-         * of this instance is never executed. OtrWeakListener will keep this
-         * instance as a listener of scOtrEngine and scOtrKeyManager for as long
+         * of this instance is never executed. OmemoWeakListener will keep this
+         * instance as a listener of scOmemoEngine and scOmemoKeyManager for as long
          * as this instance is necessary. And this instance will be strongly
          * referenced by the JMenuItems which depict it. So when the JMenuItems
-         * are gone, this instance will become obsolete and OtrWeakListener will
-         * remove it as a listener of scOtrEngine and scOtrKeyManager.
+         * are gone, this instance will become obsolete and OmemoWeakListener will
+         * remove it as a listener of scOmemoEngine and scOmemoKeyManager.
          */
-        new OtrWeakListener<OtrMetaContactButton>(
+        new OmemoWeakListener<OtrMetaContactButton>(
             this,
-            OtrActivator.scOtrEngine, OtrActivator.scOtrKeyManager);
+            OmemoActivator.scOmemoEngine, OmemoActivator.scOtrKeyManager);
     }
 
     /**
@@ -146,36 +142,36 @@ public class OtrMetaContactButton
             button.setEnabled(false);
             button.setPreferredSize(new Dimension(25, 25));
 
-            button.setToolTipText(OtrActivator.resourceService.getI18NString(
-                "plugin.otr.menu.OTR_TOOLTIP"));
+            button.setToolTipText(OmemoActivator.resourceService.getI18NString(
+                "plugin.omemo.menu.OTR_TOOLTIP"));
 
             Image i1 = null, i2 = null, i3 = null;
             try
             {
                 i1 = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.LOADING_ICON1_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.LOADING_ICON1_22x22"));
                 i2 = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.LOADING_ICON2_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.LOADING_ICON2_22x22"));
                 i3 = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.LOADING_ICON3_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.LOADING_ICON3_22x22"));
                 finishedPadlockImage = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.FINISHED_ICON_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.FINISHED_ICON_22x22"));
                 verifiedLockedPadlockImage = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.ENCRYPTED_ICON_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.ENCRYPTED_ICON_22x22"));
                 unverifiedLockedPadlockImage = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.ENCRYPTED_UNVERIFIED_ICON_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.ENCRYPTED_UNVERIFIED_ICON_22x22"));
                 unlockedPadlockImage = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.PLAINTEXT_ICON_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.PLAINTEXT_ICON_22x22"));
                 timedoutPadlockImage = ImageIO.read(
-                        OtrActivator.resourceService.getImageURL(
-                            "plugin.otr.BROKEN_ICON_22x22"));
+                        OmemoActivator.resourceService.getImageURL(
+                            "plugin.omemo.BROKEN_ICON_22x22"));
             } catch (IOException e)
             {
                 logger.debug("Failed to load padlock image");
@@ -185,41 +181,40 @@ public class OtrMetaContactButton
 
             button.addActionListener(new ActionListener()
             {
-                @Override
                 public void actionPerformed(ActionEvent e)
                 {
                     if (otrContact == null)
                         return;
 
-                    switch (OtrActivator.scOtrEngine.getSessionStatus(otrContact))
+                    switch (OmemoActivator.scOmemoEngine.getSessionStatus(otrContact))
                     {
                     case ENCRYPTED:
-                        OtrPolicy policy =
-                            OtrActivator.scOtrEngine.getContactPolicy(
+                        OmemoPolicy policy =
+                            OmemoActivator.scOmemoEngine.getContactPolicy(
                                 otrContact.contact);
                         policy.setSendWhitespaceTag(false);
-                        OtrActivator.scOtrEngine.setContactPolicy(
+                        OmemoActivator.scOmemoEngine.setContactPolicy(
                             otrContact.contact, policy);
                     case FINISHED:
                     case LOADING:
                         // Default action for finished, encrypted and loading
                         // sessions is end session.
-                        OtrActivator.scOtrEngine.endSession(otrContact);
+                        OmemoActivator.scOmemoEngine.endSession(otrContact);
                         break;
                     case TIMED_OUT:
                     case PLAINTEXT:
                         policy =
-                            OtrActivator.scOtrEngine.getContactPolicy(
+                            OmemoActivator.scOmemoEngine.getContactPolicy(
                                 otrContact.contact);
-                        OtrPolicy globalPolicy =
-                            OtrActivator.scOtrEngine.getGlobalPolicy();
+                        OmemoPolicy globalPolicy =
+                            OmemoActivator.scOmemoEngine.getGlobalPolicy();
                         policy.setSendWhitespaceTag(
                             globalPolicy.getSendWhitespaceTag());
-                        OtrActivator.scOtrEngine.setContactPolicy(
+                        OmemoActivator.scOmemoEngine.setContactPolicy(
                             otrContact.contact, policy);
                         // Default action for timed_out and plaintext sessions
                         // is start session.
-                        OtrActivator.scOtrEngine.startSession(otrContact);
+                        OmemoActivator.scOmemoEngine.startSession(otrContact);
                         break;
                     }
                 }
@@ -229,33 +224,37 @@ public class OtrMetaContactButton
     }
 
     /*
-     * Returns the SIPCommButton which is the component of this plugin,
-     * creating it, if it does not yet exist.
+     * Implements PluginComponent#getComponent(). Returns the SIPCommButton
+     * which is the component of this plugin creating it first if it doesn't
+     * exist.
      */
-    @Override
     public Object getComponent()
     {
         return getButton();
     }
 
-    @Override
+    /*
+     * Implements PluginComponent#getName().
+     */
     public String getName()
     {
         return "";
     }
 
+    /*
+     * Implements PluginComponent#setCurrentContact(Contact).
+     */
     @Override
     public void setCurrentContact(Contact contact)
     {
         setCurrentContact(contact, null);
     }
 
-    @Override
     public void setCurrentContact(Contact contact, String resourceName)
     {
         if (contact == null)
         {
-            this.otrContact = null;
+            this.omemoContact = null;
             this.setPolicy(null);
             this.setStatus(ScSessionStatus.PLAINTEXT);
             return;
@@ -263,36 +262,39 @@ public class OtrMetaContactButton
 
         if (resourceName == null)
         {
-            OtrContact otrContact =
-                OtrContactManager.getOtrContact(contact, null);
-            if (this.otrContact == otrContact)
+            OmemoContact otrContact =
+                OmemoContactManager.getOtrContact(contact, null);
+            if (this.omemoContact == otrContact)
                 return;
-            this.otrContact = otrContact;
+            this.omemoContact = otrContact;
             this.setStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
             this.setPolicy(
-                OtrActivator.scOtrEngine.getContactPolicy(contact));
+                OmemoActivator.scOmemoEngine.getContactPolicy(contact));
             return;
         }
         for (ContactResource resource : contact.getResources())
         {
             if (resource.getResourceName().equals(resourceName))
             {
-                OtrContact otrContact =
-                    OtrContactManager.getOtrContact(contact, resource);
-                if (this.otrContact == otrContact)
+                OmemoContact otrContact =
+                    OmemoContactManager.getOtrContact(contact, resource);
+                if (this.omemoContact == otrContact)
                     return;
-                this.otrContact = otrContact;
+                this.omemoContact = otrContact;
                 this.setStatus(
-                    OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                    OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
                 this.setPolicy(
-                    OtrActivator.scOtrEngine.getContactPolicy(contact));
+                    OmemoActivator.scOmemoEngine.getContactPolicy(contact));
                 return;
             }
         }
         logger.debug("Could not find resource for contact " + contact);
     }
 
+    /*
+     * Implements PluginComponent#setCurrentContact(MetaContact).
+     */
     @Override
     public void setCurrentContact(MetaContact metaContact)
     {
@@ -302,11 +304,11 @@ public class OtrMetaContactButton
 
     /**
      * Sets the button enabled status according to the passed in
-     * {@link OtrPolicy}.
+     * {@link OmemoPolicy}.
      *
-     * @param contactPolicy the {@link OtrPolicy}.
+     * @param contactPolicy the {@link OmemoPolicy}.
      */
-    private void setPolicy(OtrPolicy contactPolicy)
+    private void setPolicy(OmemoPolicy contactPolicy)
     {
         getButton().setEnabled(
             contactPolicy != null && contactPolicy.getEnableManual());
@@ -326,37 +328,37 @@ public class OtrMetaContactButton
         {
         case ENCRYPTED:
             PublicKey pubKey =
-                OtrActivator.scOtrEngine.getRemotePublicKey(otrContact);
+                OmemoActivator.scOmemoEngine.getRemotePublicKey(otrContact);
             String fingerprint =
-                OtrActivator.scOtrKeyManager.
+                OmemoActivator.scOmemoKeyManager.
                     getFingerprintFromPublicKey(pubKey);
             image
-                = OtrActivator.scOtrKeyManager.isVerified(
+                = OmemoActivator.scOmemoKeyManager.isVerified(
                         otrContact.contact, fingerprint)
                     ? verifiedLockedPadlockImage
                     : unverifiedLockedPadlockImage;
             tipKey =
-                OtrActivator.scOtrKeyManager.isVerified(
+                OmemoActivator.scOmemoKeyManager.isVerified(
                         otrContact.contact, fingerprint)
-                ? "plugin.otr.menu.VERIFIED"
-                : "plugin.otr.menu.UNVERIFIED";
+                ? "plugin.omemo.menu.VERIFIED"
+                : "plugin.omemo.menu.UNVERIFIED";
             break;
         case FINISHED:
             image = finishedPadlockImage;
-            tipKey = "plugin.otr.menu.FINISHED";
+            tipKey = "plugin.omemo.menu.FINISHED";
             break;
         case PLAINTEXT:
             image = unlockedPadlockImage;
-            tipKey = "plugin.otr.menu.START_OTR";
+            tipKey = "plugin.omemo.menu.START_OTR";
             break;
         case LOADING:
             image = animatedPadlockImage;
             animatedPadlockImage.start();
-            tipKey = "plugin.otr.menu.LOADING_OTR";
+            tipKey = "plugin.omemo.menu.LOADING_OTR";
             break;
         case TIMED_OUT:
             image = timedoutPadlockImage;
-            tipKey = "plugin.otr.menu.TIMED_OUT";
+            tipKey = "plugin.omemo.menu.TIMED_OUT";
             break;
         default:
             return;
@@ -364,23 +366,23 @@ public class OtrMetaContactButton
 
         SIPCommButton button = getButton();
         button.setIconImage(image);
-        button.setToolTipText(OtrActivator.resourceService
+        button.setToolTipText(OmemoActivator.resourceService
             .getI18NString(tipKey));
         button.repaint();
     }
 
     @Override
-    public void multipleInstancesDetected(OtrContact contact)
+    public void multipleInstancesDetected(OmemoContact contact)
     {}
 
     @Override
-    public void outgoingSessionChanged(OtrContact otrContact)
+    public void outgoingSessionChanged(OmemoContact otrContact)
     {
-        // OtrMetaContactButton.this.contact can be null.
-        if (otrContact.equals(OtrMetaContactButton.this.otrContact))
+        // OmemoMetaContactButton.this.contact can be null.
+        if (otrContact.equals(OmemoMetaContactButton.this.omemoContact))
         {
             setStatus(
-                OtrActivator.scOtrEngine.getSessionStatus(otrContact));
+                OmemoActivator.scOmemoEngine.getSessionStatus(otrContact));
         }
     }
 }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr.authdialog;
+package net.java.sip.communicator.plugin.omemo.authdialog;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -27,10 +27,10 @@ import javax.imageio.*;
 import javax.swing.*;
 import javax.swing.Timer;
 
-import net.java.otr4j.session.*;
+import net.java.omemo4j.session.*;
 import net.java.sip.communicator.plugin.desktoputil.*;
-import net.java.sip.communicator.plugin.otr.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.sip.communicator.plugin.omemo.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.contactlist.*;
 import net.java.sip.communicator.service.gui.*;
 import net.java.sip.communicator.service.gui.Container;
@@ -48,8 +48,8 @@ public class OTRv3OutgoingSessionSwitcher
     extends SIPCommMenuBar
     implements PluginComponent,
                ActionListener,
-               ScOtrEngineListener,
-               ScOtrKeyManagerListener
+               ScOmemoEngineListener,
+               ScOmemoKeyManagerListener
 {
 
     private static final Logger logger
@@ -63,17 +63,19 @@ public class OTRv3OutgoingSessionSwitcher
 
     private ButtonGroup buttonGroup = new ButtonGroup();
 
-    private OtrContact contact;
+    private OmemoContact contact;
 
     /**
      * A map used for storing each <tt>Session</tt>s corresponding <tt>JMenuItem
      * </tt>.
      */
-    private final Map<Session, JMenuItem> outgoingSessions = new HashMap<>();
+    private final Map<Session, JMenuItem> outgoingSessions
+        = new HashMap<Session, JMenuItem>();
 
     /**
      * An animated {@link JMenu}
      * @author Marin Dzhigarov
+     *
      */
     private static class SelectorMenu
         extends SIPCommMenu
@@ -83,7 +85,7 @@ public class OTRv3OutgoingSessionSwitcher
          */
         private static final long serialVersionUID = 0L;
 
-        Image image = OtrActivator.resourceService.getImage(
+        Image image = OmemoActivator.resourceService.getImage(
                             "service.gui.icons.DOWN_ARROW_ICON").getImage();
 
         private static float alpha = 0.95f;
@@ -143,6 +145,9 @@ public class OTRv3OutgoingSessionSwitcher
         }
     };
 
+    /**
+     * The OTRv3OutgoingSessionSwitcher constructor
+     */
     public OTRv3OutgoingSessionSwitcher(Container container,
         PluginComponentFactory parentFactory)
     {
@@ -164,35 +169,35 @@ public class OTRv3OutgoingSessionSwitcher
         this.menu.setVisible(false);
 
         /*
-         * XXX This OtrV3OutgoingSessionSwitcher instance cannot be added as a
-         * listener to scOtrEngine and scOtrKeyManager without being removed
+         * XXX This OmemoV3OutgoingSessionSwitcher instance cannot be added as a
+         * listener to scOmemoEngine and scOmemoKeyManager without being removed
          * later on because the latter live forever. Unfortunately, the
-         * dispose() method of this instance is never executed. OtrWeakListener
-         * will keep this instance as a listener of scOtrEngine and
-         * scOtrKeyManager for as long as this instance is necessary. And this
+         * dispose() method of this instance is never executed. OmemoWeakListener
+         * will keep this instance as a listener of scOmemoEngine and
+         * scOmemoKeyManager for as long as this instance is necessary. And this
          * instance will be strongly referenced by the JMenuItems which depict
          * it. So when the JMenuItems are gone, this instance will become
-         * obsolete and OtrWeakListener will remove it as a listener of
-         * scOtrEngine and scOtrKeyManager.
+         * obsolete and OmemoWeakListener will remove it as a listener of
+         * scOmemoEngine and scOmemoKeyManager.
          */
-        new OtrWeakListener<OTRv3OutgoingSessionSwitcher>(
+        new OmemoWeakListener<OTRv3OutgoingSessionSwitcher>(
             this,
-            OtrActivator.scOtrEngine, OtrActivator.scOtrKeyManager);
+            OmemoActivator.scOmemoEngine, OmemoActivator.scOtrKeyManager);
 
         try
         {
             finishedPadlockImage = new ImageIcon(ImageIO.read(
-                    OtrActivator.resourceService.getImageURL(
-                        "plugin.otr.FINISHED_ICON_BLACK_16x16")));
+                    OmemoActivator.resourceService.getImageURL(
+                        "plugin.omemo.FINISHED_ICON_BLACK_16x16")));
             verifiedLockedPadlockImage = new ImageIcon(ImageIO.read(
-                    OtrActivator.resourceService.getImageURL(
-                        "plugin.otr.ENCRYPTED_ICON_BLACK_16x16")));
+                    OmemoActivator.resourceService.getImageURL(
+                        "plugin.omemo.ENCRYPTED_ICON_BLACK_16x16")));
             unverifiedLockedPadlockImage = new ImageIcon(ImageIO.read(
-                    OtrActivator.resourceService.getImageURL(
-                        "plugin.otr.ENCRYPTED_UNVERIFIED_ICON_BLACK_16x16")));
+                    OmemoActivator.resourceService.getImageURL(
+                        "plugin.omemo.ENCRYPTED_UNVERIFIED_ICON_BLACK_16x16")));
             unlockedPadlockImage = new ImageIcon(ImageIO.read(
-                    OtrActivator.resourceService.getImageURL(
-                        "plugin.otr.PLAINTEXT_ICON_16x16")));
+                    OmemoActivator.resourceService.getImageURL(
+                        "plugin.omemo.PLAINTEXT_ICON_16x16")));
         } catch (IOException e)
         {
             logger.debug("Failed to load padlock image");
@@ -214,14 +219,13 @@ public class OTRv3OutgoingSessionSwitcher
      *
      * @param contact the current contact
      */
-    @Override
     public void setCurrentContact(Contact contact)
     {
         if (this.contact != null && this.contact.contact == contact)
             return;
 
         this.contact =
-            OtrContactManager.getOtrContact(contact, null);
+            OmemoContactManager.getOtrContact(contact, null);
         buildMenu(this.contact);
     }
 
@@ -234,7 +238,6 @@ public class OTRv3OutgoingSessionSwitcher
      *
      * @param metaContact the current meta contact
      */
-    @Override
     public void setCurrentContact(MetaContact metaContact)
     {
         setCurrentContact((metaContact == null) ? null : metaContact
@@ -250,13 +253,12 @@ public class OTRv3OutgoingSessionSwitcher
      * @param resourceName the <tt>ContactResource</tt> name. Some components
      * may be interested in a particular ContactResource of a contact.
      */
-    @Override
     public void setCurrentContact(Contact contact, String resourceName)
     {
         if (resourceName == null)
         {
             this.contact =
-                OtrContactManager.getOtrContact(contact, null);
+                OmemoContactManager.getOtrContact(contact, null);
             buildMenu(this.contact);
         }
         else
@@ -265,8 +267,8 @@ public class OTRv3OutgoingSessionSwitcher
             {
                 if (resource.getResourceName().equals(resourceName))
                 {
-                    OtrContact otrContact =
-                        OtrContactManager.getOtrContact(contact, resource);
+                    OmemoContact otrContact =
+                        OmemoContactManager.getOtrContact(contact, resource);
                     if (this.contact == otrContact)
                         return;
                     this.contact = otrContact;
@@ -288,38 +290,51 @@ public class OTRv3OutgoingSessionSwitcher
         return parentFactory;
     }
 
-    @Override
-    public void contactVerificationStatusChanged(OtrContact contact)
+    /**
+     * Implements ScOmemoKeyManagerListener#contactVerificationStatusChanged(
+     * Contact).
+     */
+    public void contactVerificationStatusChanged(OmemoContact contact)
     {
         buildMenu(contact);
         if (this.menu.isVisible())
             this.menu.fadeAnimation();
     }
 
-    @Override
+    /**
+     * Implements ScOmemoEngineListener#contactPolicyChanged(Contact).
+     */
     public void contactPolicyChanged(Contact contact) {}
 
-    @Override
+    /**
+     * Implements ScOmemoKeyManagerListener#globalPolicyChanged().
+     */
     public void globalPolicyChanged() {}
 
-    @Override
-    public void sessionStatusChanged(OtrContact contact)
+    /**
+     * Implements ScOmemoEngineListener#sessionStatusChanged(OmemoContact).
+     */
+    public void sessionStatusChanged(OmemoContact contact)
     {
         buildMenu(contact);
         if (this.menu.isVisible())
             this.menu.fadeAnimation();
     }
 
-    @Override
-    public void multipleInstancesDetected(OtrContact contact)
+    /**
+     * Implements ScOmemoEngineListener#multipleInstancesDetected(OmemoContact).
+     */
+    public void multipleInstancesDetected(OmemoContact contact)
     {
         buildMenu(contact);
         if (this.menu.isVisible())
             this.menu.fadeAnimation();
     }
 
-    @Override
-    public void outgoingSessionChanged(OtrContact contact)
+    /**
+     * Implements ScOmemoEngineListener#outgoingSessionChanged(OmemoContact).
+     */
+    public void outgoingSessionChanged(OmemoContact contact)
     {
         buildMenu(contact);
     }
@@ -338,7 +353,7 @@ public class OTRv3OutgoingSessionSwitcher
      *
      * @param otrContact the contact which is logged in multiple locations
      */
-    private void buildMenu(OtrContact otrContact)
+    private void buildMenu(OmemoContact otrContact)
     {
         if (otrContact == null || !this.contact.equals(otrContact))
         {
@@ -346,11 +361,11 @@ public class OTRv3OutgoingSessionSwitcher
         }
         menu.removeAll();
         java.util.List<Session> multipleInstances =
-            OtrActivator.scOtrEngine.getSessionInstances(
+            OmemoActivator.scOmemoEngine.getSessionInstances(
                 otrContact);
 
         Session outgoingSession =
-            OtrActivator.scOtrEngine.getOutgoingSession(otrContact);
+            OmemoActivator.scOmemoEngine.getOutgoingSession(otrContact);
         int index = 0;
         for (Session session : multipleInstances)
         {
@@ -372,10 +387,10 @@ public class OTRv3OutgoingSessionSwitcher
                 PublicKey pubKey =
                     session.getRemotePublicKey(session.getReceiverInstanceTag());
                 String fingerprint =
-                    OtrActivator.scOtrKeyManager.
+                    OmemoActivator.scOmemoKeyManager.
                         getFingerprintFromPublicKey(pubKey);
                 imageIcon
-                    = OtrActivator.scOtrKeyManager.isVerified(
+                    = OmemoActivator.scOmemoKeyManager.isVerified(
                             otrContact.contact, fingerprint)
                         ? verifiedLockedPadlockImage
                         : unverifiedLockedPadlockImage;
@@ -406,7 +421,6 @@ public class OTRv3OutgoingSessionSwitcher
         menu.repaint();
     }
 
-    @Override
     public void actionPerformed(ActionEvent e)
     {
         for (Map.Entry<Session, JMenuItem> entry : outgoingSessions.entrySet())
@@ -414,7 +428,7 @@ public class OTRv3OutgoingSessionSwitcher
             JMenuItem menuItem = (JRadioButtonMenuItem) e.getSource();
             if (menuItem.equals(entry.getValue()))
             {
-                OtrActivator.scOtrEngine.setOutgoingSession(
+                OmemoActivator.scOmemoEngine.setOutgoingSession(
                     contact, entry.getKey().getReceiverInstanceTag());
                 break;
             }

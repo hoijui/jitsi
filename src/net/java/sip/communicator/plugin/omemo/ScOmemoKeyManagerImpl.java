@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.java.sip.communicator.plugin.otr;
+package net.java.sip.communicator.plugin.omemo;
 
 import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
-import net.java.otr4j.crypto.*;
-import net.java.sip.communicator.plugin.otr.OtrContactManager.OtrContact;
+import net.java.omemo4j.crypto.*;
+import net.java.sip.communicator.plugin.omemo.OmemoContactManager.OmemoContact;
 import net.java.sip.communicator.service.protocol.*;
 
 /**
@@ -30,16 +30,15 @@ import net.java.sip.communicator.service.protocol.*;
  * @author George Politis
  * @author Lyubomir Marinov
  */
-public class ScOtrKeyManagerImpl
-    implements ScOtrKeyManager
+public class ScOmemoKeyManagerImpl
+    implements ScOmemoKeyManager
 {
-    private final OtrConfigurator configurator = new OtrConfigurator();
+    private final OmemoConfigurator configurator = new OmemoConfigurator();
 
-    private final List<ScOtrKeyManagerListener> listeners =
-        new Vector<>();
+    private final List<ScOmemoKeyManagerListener> listeners =
+        new Vector<ScOmemoKeyManagerListener>();
 
-    @Override
-    public void addListener(ScOtrKeyManagerListener l)
+    public void addListener(ScOmemoKeyManagerListener l)
     {
         synchronized (listeners)
         {
@@ -49,26 +48,25 @@ public class ScOtrKeyManagerImpl
     }
 
     /**
-     * Gets a copy of the list of <tt>ScOtrKeyManagerListener</tt>s registered
+     * Gets a copy of the list of <tt>ScOmemoKeyManagerListener</tt>s registered
      * with this instance which may safely be iterated without the risk of a
      * <tt>ConcurrentModificationException</tt>.
      *
-     * @return a copy of the list of <tt>ScOtrKeyManagerListener<tt>s registered
+     * @return a copy of the list of <tt>ScOmemoKeyManagerListener<tt>s registered
      * with this instance which may safely be iterated without the risk of a
      * <tt>ConcurrentModificationException</tt>
      */
-    private ScOtrKeyManagerListener[] getListeners()
+    private ScOmemoKeyManagerListener[] getListeners()
     {
         synchronized (listeners)
         {
             return
                 listeners.toArray(
-                        new ScOtrKeyManagerListener[listeners.size()]);
+                        new ScOmemoKeyManagerListener[listeners.size()]);
         }
     }
 
-    @Override
-    public void removeListener(ScOtrKeyManagerListener l)
+    public void removeListener(ScOmemoKeyManagerListener l)
     {
         synchronized (listeners)
         {
@@ -76,8 +74,7 @@ public class ScOtrKeyManagerImpl
         }
     }
 
-    @Override
-    public void verify(OtrContact otrContact, String fingerprint)
+    public void verify(OmemoContact otrContact, String fingerprint)
     {
         if ((fingerprint == null) || otrContact == null)
             return;
@@ -85,12 +82,11 @@ public class ScOtrKeyManagerImpl
         this.configurator.setProperty(otrContact.contact.getAddress() + fingerprint
             + ".fingerprint.verified", true);
 
-        for (ScOtrKeyManagerListener l : getListeners())
+        for (ScOmemoKeyManagerListener l : getListeners())
             l.contactVerificationStatusChanged(otrContact);
     }
 
-    @Override
-    public void unverify(OtrContact otrContact, String fingerprint)
+    public void unverify(OmemoContact otrContact, String fingerprint)
     {
         if ((fingerprint == null) || otrContact == null)
             return;
@@ -98,11 +94,10 @@ public class ScOtrKeyManagerImpl
         this.configurator.setProperty(otrContact.contact.getAddress() + fingerprint
             + ".fingerprint.verified", false);
 
-        for (ScOtrKeyManagerListener l : getListeners())
+        for (ScOmemoKeyManagerListener l : getListeners())
             l.contactVerificationStatusChanged(otrContact);
     }
 
-    @Override
     public boolean isVerified(Contact contact, String fingerprint)
     {
         if (fingerprint == null || contact == null)
@@ -113,7 +108,6 @@ public class ScOtrKeyManagerImpl
                 + ".fingerprint.verified", false);
     }
 
-    @Override
     public List<String> getAllRemoteFingerprints(Contact contact)
     {
         if (contact == null)
@@ -157,16 +151,20 @@ public class ScOtrKeyManagerImpl
 
                 // Now we can store the old properties in the new format.
                 if (isVerified)
-                    verify(OtrContactManager.getOtrContact(contact, null), fingerprint);
+                    verify(OmemoContactManager.getOtrContact(contact, null), fingerprint);
                 else
-                    unverify(OtrContactManager.getOtrContact(contact, null), fingerprint);
+                    unverify(OmemoContactManager.getOtrContact(contact, null), fingerprint);
 
                 // Finally we append the new fingerprint to out stored list of
                 // fingerprints.
                 this.configurator.appendProperty(
                     userID + ".fingerprints", fingerprint);
             }
-            catch (NoSuchAlgorithmException | InvalidKeySpecException e)
+            catch (NoSuchAlgorithmException e)
+            {
+                e.printStackTrace();
+            }
+            catch (InvalidKeySpecException e)
             {
                 e.printStackTrace();
             }
@@ -178,21 +176,19 @@ public class ScOtrKeyManagerImpl
             contact.getAddress() + ".fingerprints");
     }
 
-    @Override
     public String getFingerprintFromPublicKey(PublicKey pubKey)
     {
         try
         {
-            return new OtrCryptoEngineImpl().getFingerprint(pubKey);
+            return new OmemoCryptoEngineImpl().getFingerprint(pubKey);
         }
-        catch (OtrCryptoException e)
+        catch (OmemoCryptoException e)
         {
             e.printStackTrace();
             return null;
         }
     }
 
-    @Override
     public String getLocalFingerprint(AccountID account)
     {
         KeyPair keyPair = loadKeyPair(account);
@@ -204,16 +200,15 @@ public class ScOtrKeyManagerImpl
 
         try
         {
-            return new OtrCryptoEngineImpl().getFingerprint(pubKey);
+            return new OmemoCryptoEngineImpl().getFingerprint(pubKey);
         }
-        catch (OtrCryptoException e)
+        catch (OmemoCryptoException e)
         {
             e.printStackTrace();
             return null;
         }
     }
 
-    @Override
     public byte[] getLocalFingerprintRaw(AccountID account)
     {
         KeyPair keyPair = loadKeyPair(account);
@@ -225,16 +220,15 @@ public class ScOtrKeyManagerImpl
 
         try
         {
-            return new OtrCryptoEngineImpl().getFingerprintRaw(pubKey);
+            return new OmemoCryptoEngineImpl().getFingerprintRaw(pubKey);
         }
-        catch (OtrCryptoException e)
+        catch (OmemoCryptoException e)
         {
             e.printStackTrace();
             return null;
         }
     }
 
-    @Override
     public void saveFingerprint(Contact contact, String fingerprint)
     {
         if (contact == null)
@@ -247,7 +241,6 @@ public class ScOtrKeyManagerImpl
             + ".fingerprint.verified", false);
     }
 
-    @Override
     public KeyPair loadKeyPair(AccountID account)
     {
         if (account == null)
@@ -282,7 +275,12 @@ public class ScOtrKeyManagerImpl
             publicKey = keyFactory.generatePublic(publicKeySpec);
             privateKey = keyFactory.generatePrivate(privateKeySpec);
         }
-        catch (NoSuchAlgorithmException | InvalidKeySpecException e)
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        catch (InvalidKeySpecException e)
         {
             e.printStackTrace();
             return null;
@@ -291,7 +289,6 @@ public class ScOtrKeyManagerImpl
         return new KeyPair(publicKey, privateKey);
     }
 
-    @Override
     public void generateKeyPair(AccountID account)
     {
         if (account == null)
